@@ -1,10 +1,11 @@
 ---
-title: "Covid19 Italy"
+title: "Covid-19 Italy"
 output: 
   flexdashboard::flex_dashboard:
-    css: style.css
-    social: menu
-    source_code: embed
+    css: bootstrap-pas.css
+    social: ["facebook", "twitter", "linkedin"]
+    runtime: shiny
+    source_code: embed 
     orientation: columns
     vertical_layout: fill
 ---
@@ -12,10 +13,16 @@ output:
 ```{r setup, include=FALSE}
 #------------------ Packages ------------------
 library(flexdashboard)
-
+source("layoutDarkP.R")
 ### Required the dev version from Github until the next release to CRAN
-library(covid19italy)
+#library(covid19italy)
+
 `%>%` <- magrittr::`%>%`
+# ----------------------------------------------
+# Load raw updated data
+# ----------------------------------------------
+source("rawdata.R")
+#
 #------------------ Parameters ------------------
 # Set colors
 # https://www.w3.org/TR/css-color-3/#svg-color
@@ -27,9 +34,29 @@ death_color <- "#E41317"
 intensive_care_color <- "#9E0003"
 h_symptoms_color <- "#E41317"
 home_conf_color <- "#FDBBBC"
+# -----------------------------------------------
+#`%>%` <- magrittr::`%>%`
 
+# -----------------------------------------------
+#
+# KPI from raw data
+# -----------------------------------------------
+# italy_total
+#
+italy_total_last <- italy_total %>% dplyr::filter(date == max(date))
 
-`%>%` <- magrittr::`%>%`
+italy_total <- italy_total %>% 
+  dplyr::arrange(date) %>%
+  dplyr::mutate(tested_daily = total_tests - dplyr::lag(total_tests, n = 1)) %>%
+  dplyr::mutate(new_cases_smooth = (daily_positive_cases +
+                                    dplyr::lag(daily_positive_cases, n = 1) +
+                                    dplyr::lag(daily_positive_cases, n = 2) +
+                                    dplyr::lag(daily_positive_cases, n = 3) +
+                                    dplyr::lag(daily_positive_cases, n = 4)) / 5)
+
+italy_total$tested_daily[1] <- italy_total$total_tests[1]
+
+# Mapping -------------------------------------------------------------------------------
 italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
   dplyr::select(province = name, region, geometry) %>%
   dplyr::group_by(region) %>%
@@ -38,29 +65,12 @@ italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "s
               dplyr::filter(date == max(date)), # subseting for the most recent day
             by = c("region" = "region_spatial"))
 
-
-
-
-italy_total_last <- italy_total %>% dplyr::filter(date == max(date))
-
-
-italy_total <- italy_total %>% 
-  dplyr::arrange(date) %>%
-  dplyr::mutate(tested_daily = total_tests - dplyr::lag(total_tests, n = 1)) %>%
-  dplyr::mutate(new_cases_smooth = (new_currently_positive +
-                                    dplyr::lag(new_currently_positive, n = 1) +
-                                    dplyr::lag(new_currently_positive, n = 2) +
-                                    dplyr::lag(new_currently_positive, n = 3) +
-                                    dplyr::lag(new_currently_positive, n = 4)) / 5)
-
-italy_total$tested_daily[1] <- italy_total$total_tests[1]
-
-
-
-
-#------------trajectory plot data prep------------
+# ------------------------------------------------
+# International data
 library(coronavirus)
 data(coronavirus)
+
+#------------trajectory plot data prep------------
 
 df_china <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "China") %>%
   dplyr::group_by(date) %>%
@@ -72,8 +82,7 @@ df_china <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region ==
   dplyr::select(-cases, -date)
 
 df_china$index <- 1:nrow(df_china)
-head(df_china)
-
+#head(df_china)
 
 df_us <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "US") %>%
   dplyr::group_by(date) %>%
@@ -84,9 +93,8 @@ df_us <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "U
   dplyr::filter(us > 100)  %>%
   dplyr::select(-cases, -date)
 
-
 df_us$index <- 1:nrow(df_us)
-head(df_us)
+#head(df_us)
 
 df_iran <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Iran") %>%
   dplyr::group_by(date) %>%
@@ -98,8 +106,7 @@ df_iran <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == 
   dplyr::select(-cases, -date)
 
 df_iran$index <- 1:nrow(df_iran)
-head(df_iran)
-
+#head(df_iran)
 
 df_sk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Korea, South") %>%
   dplyr::group_by(date) %>%
@@ -111,8 +118,7 @@ df_sk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "K
   dplyr::select(-cases, -date)
 
 df_sk$index <- 1:nrow(df_sk)
-head(df_sk)
-
+#head(df_sk)
 
 df_spain <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Spain") %>%
   dplyr::group_by(date) %>%
@@ -124,14 +130,13 @@ df_spain <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region ==
   dplyr::select(-cases, -date)
 
 df_spain$index <- 1:nrow(df_spain)
-head(df_spain)
+#head(df_spain)
 
-
-df_italy <- italy_total %>% dplyr::select(date, italy = total_positive_cases) %>%
+df_italy <- italy_total %>% dplyr::select(date, italy = cumulative_cases) %>%
   dplyr::filter(italy > 100) %>%
   dplyr::select(-date)
 df_italy$index <- 1:nrow(df_italy)
-head(df_italy)
+#head(df_italy)
 
 df_trajectory <- df_china %>% 
   dplyr::left_join(df_italy, by = "index") %>%
@@ -140,34 +145,24 @@ df_trajectory <- df_china %>%
   dplyr::left_join(df_us, by = "index") %>%
   dplyr::left_join(df_spain, by = "index")
 
-
-
-
-
-
-
 ```
 
-
-
-Summary
+Summary {data-icon="ion-ios-home"}
 =======================================================================
 Column { data-width=150 }
 -----------------------------------------------------------------------
-### tested {.value-box}
-```{r}
-valueBox(value = paste(format(italy_total_last$total_tests, big.mark = ","), "", sep = " "), 
-         caption = "Total Tested Cases", 
-         icon = "fas fa-user-md", 
-         color = tested_color)
-```
-
-
+<!-- ### tested {.value-box} -->
+<!-- ```{r} -->
+<!-- valueBox(value = paste(format(italy_total_last$total_tests, big.mark = ","), "", sep = " "),  -->
+<!--          caption = "Total Tested Cases",  -->
+<!--          icon = "fas fa-user-md",  -->
+<!--          color = tested_color) -->
+<!-- ``` -->
 
 ### Positive Cases {.value-box}
 
 ```{r}
-valueBox(value = paste(format(italy_total_last$total_positive_cases, big.mark = ","), "", sep = " "), 
+valueBox(value = paste(format(italy_total_last$cumulative_cases, big.mark = ","), "", sep = " "), 
          caption = "Total Positive Cases", 
          icon = "far fa-plus-square", 
          color = positive_color)
@@ -176,7 +171,7 @@ valueBox(value = paste(format(italy_total_last$total_positive_cases, big.mark = 
 
 ### Active {.value-box}
 ```{r}
-valueBox(value = paste(format(italy_total_last$total_currently_positive, big.mark = ","), sep = ""),
+valueBox(value = paste(format(italy_total_last$cumulative_positive_cases, big.mark = ","), sep = ""),
          caption = "Active Cases", 
          icon = "fas fa-ambulance",
          color = active_color)
@@ -190,25 +185,21 @@ valueBox(value = paste(format(italy_total_last$recovered, big.mark = ","), sep =
          color = recovered_color)
 ```
 
-### Hospitalized with Symptoms {.value-box}
-```{r}
-valueBox(value = paste(format(italy_total_last$hospitalized_with_symptoms, big.mark = ","), sep = ""),
-         caption = "Hospitalized with Symptoms", 
-         icon = "fas fa-hospital", 
-         color = h_symptoms_color)
-```
+<!-- ### Hospitalized with Symptoms {.value-box} -->
+<!-- ```{r} -->
+<!-- valueBox(value = paste(format(italy_total_last$hospitalized_with_symptoms, big.mark = ","), sep = ""), -->
+<!--          caption = "Hospitalized with Symptoms",  -->
+<!--          icon = "fas fa-hospital",  -->
+<!--          color = h_symptoms_color) -->
+<!-- ``` -->
 
-### Intensive Care {.value-box}
-```{r}
-valueBox(value = paste(format(italy_total_last$intensive_care, big.mark = ","), sep = ""),
-         caption = "Intensive Care", 
-         icon = "fas fa-procedures", 
-         color = intensive_care_color)
-```
-
-
-
-
+<!-- ### Intensive Care {.value-box} -->
+<!-- ```{r} -->
+<!-- valueBox(value = paste(format(italy_total_last$intensive_care, big.mark = ","), sep = ""), -->
+<!--          caption = "Intensive Care",  -->
+<!--          icon = "fas fa-procedures",  -->
+<!--          color = intensive_care_color) -->
+<!-- ``` -->
 
 ### death {.value-box}
 ```{r}
@@ -242,17 +233,16 @@ plotly::plot_ly(data = italy_total,
          legend = list(x = 0.1, y = 0.9),
          yaxis = list(title = "Number of Cases"),
          xaxis = list(title = "Source: Italy Department of Civil Protection"),
+         template = layout$template,
          hovermode = "compared")
 ```
-
-
 
 ### Daily New Cases
 
 ```{r}
 plotly::plot_ly(data = italy_total,
                 x = ~ date,
-                y = ~ new_currently_positive,
+                y = ~ daily_positive_cases,
                 type = "scatter",
                 mode = "markers",
                 name = "Positive Cases") %>%
@@ -264,11 +254,10 @@ plotly::plot_ly(data = italy_total,
                  legend = list(x = 0.1, y = 0.9),
                  yaxis = list(title = "Number of Cases"),
                  xaxis = list(title = "Using 5 days trailing moving average to calculate the trend line"),
+                 template = layout$template,
                  hovermode = "compare")
   
 ```
-
-
 
 
 Column { data-width=425 }
@@ -279,7 +268,7 @@ Column { data-width=425 }
 ```{r}
 plotly::plot_ly(data = italy_total,
         x = ~ date,
-        y = ~total_currently_positive, 
+        y = ~cumulative_positive_cases, 
         name = 'Active', 
         fillcolor = '#1f77b4',
         type = 'scatter',
@@ -295,6 +284,7 @@ plotly::plot_ly(data = italy_total,
          legend = list(x = 0.1, y = 0.9),
          yaxis = list(title = "Number of Cases"),
          xaxis = list(title = "Source: Italy Department of Civil Protection"),
+         template = layout$template,
          hovermode = "compared")
 ```
 
@@ -324,13 +314,14 @@ plotly::plot_ly(data = df_trajectory) %>%
                     name = "Spain") %>%
   plotly::layout(yaxis = list(title = "Cumulative Positive Cases",type = "log"),
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
+                 template = layout$template,
                  legend = list(x = 0.7, y = 0.3))
 
 
 ```
 
 
-Regional Level
+Regional Level {data-icon="ion-map"}
 =======================================================================
 
 Column { data-width=500 }
@@ -339,9 +330,9 @@ Column { data-width=500 }
 ### Total Number of Cases by Region (as of `r max(italy_region$date)`)
 
 ```{r}
-italy_map_region %>% 
-  mapview::mapview(zcol = "total_positive_cases") #%>%
-  # leaflet::setView(lng =  12.49, lat = 41.9, zoom = 14)
+# italy_map_region %>% 
+#   mapview::mapview(zcol = "cumulative_cases") %>%
+#   leaflet::setView(lng =  12.49, lat = 41.9, zoom = 14)
 ```
 
 Column { data-width=500 }
@@ -352,13 +343,13 @@ Column { data-width=500 }
 ```{r}
 italy_region %>% 
   dplyr::filter(date == max(date)) %>% 
-  dplyr::select(region_name, total_currently_positive, recovered, death, total_positive_cases) %>%
-  dplyr::arrange(-total_positive_cases) %>%
+  dplyr::select(region_name, cumulative_positive_cases, recovered, death, cumulative_cases) %>%
+  dplyr::arrange(-cumulative_cases) %>%
   dplyr::mutate(region = factor(region_name, levels = region_name)) %>%
   plotly::plot_ly(y = ~ region, 
-          x = ~ total_currently_positive, 
+          x = ~ cumulative_positive_cases, 
           orientation = 'h',
-          text =  ~ total_currently_positive,
+          text =  ~ cumulative_positive_cases,
           textposition = 'auto',
           type = "bar", 
           name = "Active",
@@ -378,6 +369,7 @@ italy_region %>%
          yaxis = list(title = "Region"),
          xaxis = list(title = "Number of Cases"),
          hovermode = "compare",
+         template = layout$template,
          legend = list(x = 0.65, y = 0.9),
          margin =  list(
            l = 20,
@@ -388,22 +380,22 @@ italy_region %>%
          ))
 ```
 
-Data
-=======================================================================
+<!-- Data -->
+<!-- ======================================================================= -->
 
-```{r}
-italy_total %>% 
-  dplyr::select(-tested_daily, - new_cases_smooth) %>%
-  DT::datatable(rownames = FALSE,
-                colnames = c("Date", "Hospitalized with Symptoms", "Intensive Care", "Total Hospitalized", "Home Confinement", "Total Currently Positive", "New Currently Positive",
-                             "Recovered", "Death",  "Total Positive Cases", "Total Tests"),
-            options = list(searchHighlight = TRUE, 
-                           pageLength = nrow(italy_total)), filter = 'top')
-```
+<!-- ```{r} -->
+<!-- italy_total %>%  -->
+<!--   dplyr::select(-tested_daily, - new_cases_smooth) %>% -->
+<!--   DT::datatable(rownames = FALSE, -->
+<!--                 colnames = c("Date", "Hospitalized with Symptoms", "Intensive Care", "Total Hospitalized", "Home Confinement", "Total Currently Positive", "New Currently Positive", -->
+<!--                              "Recovered", "Death",  "Total Positive Cases", "Total Tests"), -->
+<!--             options = list(searchHighlight = TRUE,  -->
+<!--                            pageLength = nrow(italy_total)), filter = 'top') -->
+<!-- ``` -->
 
 
 
-About
+About {data-icon="ion-information"}
 =======================================================================
 
 **The Coronavirus Dashboard**
