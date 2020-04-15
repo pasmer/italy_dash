@@ -15,6 +15,10 @@ decision-makers, for that the next improvements will consider the
 economic impacts and the scenario analysis with a risk management point
 of view.
 
+<img src="figures/dash1.png" width="100%" />
+
+<img src="figures/dash2.png" width="100%" />
+
 **To be updated please follow me on:**
 
   - Twitter: [pasqualemerella](https://twitter.com/pasqualemerella)
@@ -24,7 +28,7 @@ of view.
 
 **Data source**
 
-The code of this dashboard is forked from GitHub
+The code of this dashboard is forked from Rami Krispin’s GitHub
 [repository](https://github.com/RamiKrispin/).
 
 The raw data for this dashboard is pulled from Italy Department of Civil
