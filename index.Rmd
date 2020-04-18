@@ -339,27 +339,32 @@ The aim of this dashboard is to provide an insight for the business decision-mak
 
 **To be updated please follow me on:**
 
-* Twitter: [pasqualemerella](https://twitter.com/pasqualemerella)
-* LinkedIn: [Pasquale Merella, FRM](https://www.linkedin.com/in/pasqualemerella/)
-* Instagram: [iPas](https://www.instagram.com/ipas/)
+* Twitter: <a href="https://twitter.com/pasqualemerella" target="_blank">@pasqualemerella</a>
+* LinkedIn: <a href="https://www.linkedin.com/in/pasqualemerella/" target="_blank">Pasquale Merella, FRM</a>
+* Instagram: <a href="https://www.instagram.com/ipas/" target="_blank">iPas</a>
 
 
 **Data source**
 
-The code of this dashboard is forked by GitHub [repository](https://github.com/RamiKrispin/).
+The code of this dashboard is forked by GitHub <a href="https://github.com/RamiKrispin/" target="_blank">repository</a>.
 
 The raw data for this dashboard is pulled from Italy Department of Civil Protection, and the coronavirus package from Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE).
-The data and dashboard are refreshed on a daily bases.
+The data and dashboard are refreshed on a daily basis.
 
 For any question or feedback, please contact me via email (pasquale@merella.it) or via social.
+
+
 
 
 **Pasquale Merella, FRM**
 
 Chief Risk Officer - Green Arrow Capital SGR
 
+Senior Fellow <a href="https://www.smartinstitute.org/" target="_blank">The Smart Institute</a> think tank
+
 ```{r, contex="server"}
 # Server function
+# Reading the new data and rebuild the dataset
  italy_total_new <- reactiveFileReader(180000,
                                session=session,
                                'data/italy_total.rds',
@@ -374,7 +379,7 @@ Chief Risk Officer - Green Arrow Capital SGR
                                session=session,
                                'data/df_trajectory.rds',
                                readRDS)
-
+# Trigger functions
    observe({
         new_italy_total()
         invalidateLater(180000)
@@ -390,6 +395,7 @@ Chief Risk Officer - Green Arrow Capital SGR
         invalidateLater(180000)
       })
 
+# Outputs for the dashboard
 output$vbox1 <- renderValueBox({
   render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
   valueBox(value =  paste(format(render_value$cumulative_cases, big.mark = ","), sep = ""),

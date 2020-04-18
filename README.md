@@ -29,7 +29,8 @@ of view.
 **Data source**
 
 The code of this dashboard is forked from Rami Krispin’s GitHub
-[repository](https://github.com/RamiKrispin/).
+[repository](https://github.com/RamiKrispin/https://github.com/RamiKrispin/).
+<a href="https://google.com">Ciao</a>.
 
 The raw data for this dashboard is pulled from Italy Department of Civil
 Protection, and the coronavirus package from Johns Hopkins University
