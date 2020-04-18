@@ -19,7 +19,7 @@ This Covid19 Italy dashboard provides an overview of the 2019 Novel Coronavirus 
 
 This is a first beta release built with R.
 
-The aim of this dashboard is to provide an insight for the business decision-makers, for that the next improvements will consider the economic impacts and the scenario analysis with a risk management point of view.
+The aim of this dashboard is to provide an insight for the <b>business decision-makers</b>, for that the next improvements will consider the economic impacts and the scenario analysis with a <b>risk management</b> point of view.
 
 <img src="figures/dash1.png" width="100%" />
 
@@ -38,7 +38,7 @@ The aim of this dashboard is to provide an insight for the business decision-mak
 The code of this dashboard is forked from Rami Krispin's GitHub [repository](https://github.com/RamiKrispin/https://github.com/RamiKrispin/).
 
 The raw data for this dashboard is pulled from Italy Department of Civil Protection, and the coronavirus package from Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE).
-The data and dashboard are refreshed on a daily bases.
+The data and dashboard are refreshed on a daily basis.
 
 For any question or feedback, please contact me via email (pasquale@merella.it) or via social.
 
@@ -46,3 +46,5 @@ For any question or feedback, please contact me via email (pasquale@merella.it) 
 **Pasquale Merella, FRM**
 
 Chief Risk Officer - Green Arrow Capital SGR
+
+Senior Fellow <a href="https://www.smartinstitute.org/" target="_blank">The Smart Institute</a> think tank
