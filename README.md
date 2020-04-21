@@ -5,6 +5,8 @@
 
 **The Coronavirus Dashboard**
 
+Ver. 1.1
+
 This Covid19 Italy dashboard provides an overview of the 2019 Novel
 Coronavirus COVID-19 (2019-nCoV) outbreak in Italy.
 
