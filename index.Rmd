@@ -1,5 +1,5 @@
 ---
-title: "Covid-19 - Dashboard"
+title: "Covid-19 IT Dashboard"
 output: 
   flexdashboard::flex_dashboard:
     css: www/bootstrap-pas.css
@@ -20,8 +20,6 @@ library(ggplot2)
 source("www/layoutDarkP.R")
 library(coronavirus)
 data(coronavirus)
-### Required the dev version from Github until the next release to CRAN
-#library(covid19italy)-
 ```
 
 ```{r global, include=FALSE}
@@ -56,23 +54,27 @@ home_conf_color <- "#FDBBBC"
                         "total_hospitalized",
                         "home_confinement",
                         "cumulative_positive_cases",
-                        "daily_positive_cases",
-                        "daily_cases",
-                        "recovered", "death", "cumulative_cases",
-                        "total_tests", "notes_it", "notes_en")) %>%
+                        "change_positive_cases",
+                        "new_positive_cases",
+                        "recovered",
+                        "death",
+                        "cumulative_cases",
+                        "total_tests",
+                        "cases_tested",
+                        "notes_it", "notes_en")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, -state, -notes_it, -notes_en, -daily_cases) %>%
+      dplyr::select(-date_temp, -state, -notes_it, -notes_en, -new_positive_cases) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::arrange(date)
 
     italy_total <- italy_total %>% 
       dplyr::arrange(date) %>%
       dplyr::mutate(tested_daily = total_tests - dplyr::lag(total_tests, n = 1)) %>%
-      dplyr::mutate(new_cases_smooth = (daily_positive_cases +
-                                        dplyr::lag(daily_positive_cases, n = 1) +
-                                        dplyr::lag(daily_positive_cases, n = 2) +
-                                        dplyr::lag(daily_positive_cases, n = 3) +
-                                        dplyr::lag(daily_positive_cases, n = 4)) / 5)
+      dplyr::mutate(new_cases_smooth = (change_positive_cases +
+                                        dplyr::lag(change_positive_cases, n = 1) +
+                                        dplyr::lag(change_positive_cases, n = 2) +
+                                        dplyr::lag(change_positive_cases, n = 3) +
+                                        dplyr::lag(change_positive_cases, n = 4)) / 5)
     
     italy_total$tested_daily[1] <- italy_total$total_tests[1]
     
@@ -96,13 +98,16 @@ home_conf_color <- "#FDBBBC"
                         "total_hospitalized",
                         "home_confinement",
                         "cumulative_positive_cases",
-                        "daily_positive_cases",
-                        "daily_cases",
-                        "recovered", "death",
+                        "change_positive_cases",
+                        "new_positive_cases",
+                        "recovered",
+                        "death",
                         "cumulative_cases",
-                        "total_tests", "notes_it", "notes_en")) %>%
+                        "total_tests",
+                        "cases_tested",
+                        "notes_it", "notes_en")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, - state, -notes_it, -notes_en, -daily_cases) %>%
+      dplyr::select(-date_temp, - state, -notes_it, -notes_en, -new_positive_cases) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::mutate(region_spatial = region_name) %>%
       dplyr::arrange(date)
@@ -198,7 +203,8 @@ home_conf_color <- "#FDBBBC"
     
     df_spain$index <- 1:nrow(df_spain)
 
-    df_italy <- italy_total %>% dplyr::select(date, italy = cumulative_cases) %>%
+    # Read the Italy data from dataset
+    df_italy <- readRDS('data/italy_total.rds') %>% dplyr::select(date, italy = cumulative_cases) %>%
       dplyr::filter(italy > 100) %>%
       dplyr::select(-date)
     df_italy$index <- 1:nrow(df_italy)
@@ -239,13 +245,10 @@ Summary {data-icon="ion-ios-home"}
 =======================================================================
 Column { data-width=150 }
 -----------------------------------------------------------------------
-<!-- ### tested {.value-box} -->
-<!-- ```{r} -->
-<!-- valueBox(value = paste(format(italy_total_last$total_tests, big.mark = ","), "", sep = " "),  -->
-<!--          caption = "Total Tested Cases",  -->
-<!--          icon = "fas fa-user-md",  -->
-<!--          color = tested_color) -->
-<!-- ``` -->
+### tested {.value-box}
+```{r}
+valueBoxOutput("vbox5")
+```
 
 ### Positive Cases {.value-box}
 
@@ -263,11 +266,15 @@ valueBoxOutput("vbox2")
 valueBoxOutput("vbox3")
 ```
 
+### Intensive Care {.value-box}
+```{r}
+valueBoxOutput("vbox6")
+```
+
 ### death {.value-box}
 ```{r}
 valueBoxOutput("vbox4")
 ```
-
 
 Column { data-width=425 }
 -----------------------------------------------------------------------
@@ -425,6 +432,20 @@ output$vbox4 <- renderValueBox({
            color = death_color)
 })
 
+output$vbox5 <- renderValueBox({
+  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$total_tests, big.mark = ","), sep = ""),
+         caption = "Total Tested Cases",
+         icon = "fas fa-user-md",
+         color = tested_color)
+})
+
+output$vbox6 <- renderValueBox({
+  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$intensive_care, big.mark = ","), sep = ""),
+         caption = "Intensive Care", 
+         icon = "fas fa-procedures", 
+         color = intensive_care_color)
+})
+
 output$activecases <- renderPlotly({
 plotly::plot_ly(data = italy_total_new(),
         x = italy_total_new()$date,
@@ -491,7 +512,7 @@ italy_region_new() %>%
 output$dailynew <- renderPlotly({
 plotly::plot_ly(data = italy_total_new(),
                 x = ~ date,
-                y = ~ daily_positive_cases,
+                y = ~ change_positive_cases,
                 type = "scatter",
                 mode = "markers",
                 name = "Positive Cases") %>%
