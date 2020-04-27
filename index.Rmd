@@ -279,12 +279,12 @@ valueBoxOutput("vbox4")
 Column { data-width=425 }
 -----------------------------------------------------------------------
 
-### Distribution of Active Cases
+### Distribution of Active Cases (as of `r max(readRDS('data/italy_total.rds')$date)`)
 ```{r}
 plotlyOutput("activecases")
 ```
 
-### Daily New Cases
+### Daily New Cases (variation from the day before)
 ```{r}
 plotlyOutput("dailynew")
 ```
@@ -292,7 +292,7 @@ plotlyOutput("dailynew")
 Column { data-width=425 }
 -----------------------------------------------------------------------
 
-### Overall Distribution of Cases
+### Overall Distribution of Cases (as of `r max(readRDS('data/italy_total.rds')$date)`)
 ```{r}
 plotlyOutput("overall")
 ```
@@ -310,7 +310,7 @@ Geo & Regional Level {data-icon="ion-map"}
 Column { data-width=500 }
 -----------------------------------------------------------------------
 
-### Total Number of Cases by Region (as of )
+### Total Number of Cases by Region
 
 ```{r echo=FALSE, results='asis'}
 
@@ -328,7 +328,7 @@ cat('<div class="flourish-embed flourish-chart" data-src="story/230085"><script 
 Column { data-width=500 }
 -----------------------------------------------------------------------
 
-### Cases Distribution by Region
+### Cases Distribution by Region (as of `r max(readRDS('data/italy_region.rds')$date)`)
 ```{r}
 plotlyOutput("region")
 ```
@@ -405,43 +405,54 @@ Senior Fellow <a href="https://www.smartinstitute.org/" target="_blank">The Smar
 # Outputs for the dashboard
 output$vbox1 <- renderValueBox({
   render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
   valueBox(value =  paste(format(render_value$cumulative_cases, big.mark = ","), sep = ""),
-           caption = "Total Positive Cases", 
+           caption = paste(" (",formatC(round(100*(render_value$cumulative_cases/render_valuep$cumulative_cases-1),1), flag = "+"), "%) Tot Positive Cases"),
            icon = "far fa-plus-square", 
            color = positive_color)
 }) 
 
 output$vbox2 <- renderValueBox({
-  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$cumulative_positive_cases, big.mark = ","), sep = ""),
-           caption = "Active Cases",
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
+  valueBox(value = paste(format(render_value$cumulative_positive_cases, big.mark = ","), sep = ""),
+           caption = paste(" (",formatC(round(100*(render_value$cumulative_positive_cases/render_valuep$cumulative_positive_cases-1),1), flag = "+"), "%) Active Cases"),
            icon = "fas fa-ambulance",
            color = active_color)
 })
 
 output$vbox3 <- renderValueBox({
-  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$recovered, big.mark = ","), sep = ""),
-           caption = "Recovered Cases",
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
+  valueBox(value = paste(format(render_value$recovered, big.mark = ","), sep = ""),
+           caption = paste(" (",formatC(round(100*(render_value$recovered/render_valuep$recovered-1),1), flag = "+"), "%) Recovered Cases"),
            icon = "fas fa-heartbeat",
            color = recovered_color)
 })
 
 output$vbox4 <- renderValueBox({
-  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$death, big.mark = ","), sep = ""),
-           caption = "Death Cases",
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
+  valueBox(value = paste(format(render_value$death, big.mark = ","), sep = ""),
+           caption = paste(" (",formatC(round(100*(render_value$death/render_valuep$death-1),1), flag = "+"), "%) Death Cases"),
            icon = "",
            color = death_color)
 })
 
 output$vbox5 <- renderValueBox({
-  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$total_tests, big.mark = ","), sep = ""),
-         caption = "Total Tested Cases",
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
+  valueBox(value = paste(format(render_value$total_tests, big.mark = ","), sep = ""),
+         caption = paste(" (",formatC(round(100*(render_value$total_tests/render_valuep$total_tests-1),1), flag = "+"), "%) Total Tested Cases"),
          icon = "fas fa-user-md",
          color = tested_color)
 })
 
 output$vbox6 <- renderValueBox({
-  valueBox(value = paste(format((italy_total_new() %>% dplyr::filter(date == max(date)))$intensive_care, big.mark = ","), sep = ""),
-         caption = "Intensive Care", 
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuep <- italy_total_new() %>% dplyr::filter(date == max(date)-1)
+  valueBox(value = paste(format(render_value$intensive_care, big.mark = ","), sep = ""),
+         caption = paste(" (",formatC(round(100*(render_value$intensive_care/render_valuep$intensive_care-1),1), flag = "+"), "%) Intensive Care"),
          icon = "fas fa-procedures", 
          color = intensive_care_color)
 })
@@ -479,17 +490,21 @@ italy_region_new() %>%
           x = ~ cumulative_positive_cases,
           orientation = 'h',
           text =  ~ cumulative_positive_cases,
+          hovertemplate = paste('%{x:.0f}'),
           textposition = 'auto',
           type = "bar",
           name = "Active",
           marker = list(color = "#1f77b4")) %>%
   plotly::add_trace(x = ~ recovered,
             text =  ~ recovered,
+            hovertemplate = paste('%{x:.0f}'),
+            hovertemplate = paste('%{x:.0f}'),
             textposition = 'auto',
             name = "Recovered",
             marker = list(color = "forestgreen")) %>%
   plotly::add_trace(x = ~ death,
             text =  ~ death,
+            hovertemplate = paste('%{x:.0f}'),
             textposition = 'auto',
             name = "Death",
             marker = list(color = "red")) %>%
@@ -515,14 +530,14 @@ plotly::plot_ly(data = italy_total_new(),
                 y = ~ change_positive_cases,
                 type = "scatter",
                 mode = "markers",
-                name = "Positive Cases") %>%
+                name = "Delta Cases") %>%
   plotly::add_lines(x = ~ date,
                     y = ~ new_cases_smooth,
                     line = list(color = "red", width = 3),
                     name = "Trend Line") %>%
   plotly::layout(title = "",
-                 legend = list(x = 0.1, y = 0.9),
-                 yaxis = list(title = "Number of Cases"),
+                 legend = list(x = 0.01, y = 0.9),
+                 yaxis = list(title = "Daily variation in number of Cases"),
                  xaxis = list(title = "Using 5 days trailing moving average to calculate the trend line"),
                  template = layout$template,
                  hovermode = "compare")
