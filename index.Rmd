@@ -170,16 +170,16 @@ home_conf_color <- "#FDBBBC"
     
     df_us$index <- 1:nrow(df_us)
 
-    df_iran <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Iran") %>%
+    df_uk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "United Kingdom") %>%
       dplyr::group_by(date) %>%
       dplyr::summarise(cases = sum(cases)) %>%
       dplyr::ungroup() %>%
       dplyr::arrange(date) %>%
-      dplyr::mutate(iran = cumsum(cases)) %>%
-      dplyr::filter(iran > 100)  %>%
+      dplyr::mutate(uk = cumsum(cases)) %>%
+      dplyr::filter(uk > 100)  %>%
       dplyr::select(-cases, -date)
     
-    df_iran$index <- 1:nrow(df_iran)
+    df_uk$index <- 1:nrow(df_uk)
 
     df_sk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Korea, South") %>%
       dplyr::group_by(date) %>%
@@ -211,7 +211,7 @@ home_conf_color <- "#FDBBBC"
 
     df_trajectory <- df_china %>%
       dplyr::left_join(df_italy, by = "index") %>%
-      dplyr::left_join(df_iran, by = "index") %>%
+      dplyr::left_join(df_uk, by = "index") %>%
       dplyr::left_join(df_sk, by = "index") %>%
       dplyr::left_join(df_us, by = "index") %>%
       dplyr::left_join(df_spain, by = "index")
@@ -284,7 +284,7 @@ Column { data-width=425 }
 plotlyOutput("activecases")
 ```
 
-### Daily New Cases (variation from the day before)
+### Daily Delta New Active Cases (variation from the day before)
 ```{r}
 plotlyOutput("dailynew")
 ```
@@ -484,7 +484,7 @@ output$region <- renderPlotly({
 italy_region_new() %>%
   dplyr::filter(date == max(date)) %>%
   dplyr::select(region_name, cumulative_positive_cases, recovered, death, cumulative_cases) %>%
-  dplyr::arrange(-cumulative_cases) %>%
+  dplyr::arrange(cumulative_cases) %>%
   dplyr::mutate(region = factor(region_name, levels = region_name)) %>%
   plotly::plot_ly(y = ~ region,
           x = ~ cumulative_positive_cases,
@@ -570,29 +570,29 @@ output$international <- renderPlotly({
 plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ china,
-                    name = "China",  line = list(width = 1)) %>%
+                    name = "China",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ italy,
                     line = list(color = "red", width = 4),
                     name = "Italy") %>%
   plotly::add_lines(x = ~ index,
                     y = ~ us,
-                    name = "United States",  line = list(width = 1)) %>%
+                    name = "United States",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ iran,
-                    name = "Iran",  line = list(color = "orange", width = 1)) %>%
-  plotly::add_lines(x = ~ index,
-                    y = ~ sk,
-                    name = "South Korea",  line = list(width = 1)) %>%
+                    y = ~ uk,
+                    name = "UK",  line = list(color = "orange", width = 2)) %>%
+  #plotly::add_lines(x = ~ index,
+  #                  y = ~ sk,
+  #                  name = "South Korea",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ spain,
                     name = "Spain") %>%
   plotly::layout(yaxis = list(title = "Cumulative Positive Cases",type = "log"),
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
                  template = layout$template,
-                 legend = list(x = 0.7, y = 0.3))
+                 legend = list(x = 0.7, y = 0.01))
 })
 
 # Set this to "force" instead of TRUE for testing locally (without Shiny Server)
-#    session$allowReconnect(TRUE)
+#    session$allowReconnect(TRUE) 
 ```

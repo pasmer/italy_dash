@@ -48,3 +48,4 @@ Chief Risk Officer - Green Arrow Capital SGR
 Senior Fellow
 <a href="https://www.smartinstitute.org/" target="_blank">The Smart
 Institute</a> think tank
+
