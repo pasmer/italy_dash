@@ -18,8 +18,6 @@ library(shinyjs)
 library(plotly)
 library(ggplot2)
 source("www/layoutDarkP.R")
-library(coronavirus)
-data(coronavirus)
 ```
 
 ```{r global, include=FALSE}
@@ -148,61 +146,55 @@ home_conf_color <- "#FDBBBC"
 #------------trajectory plot data prep------------
 
  new_df_trajectory <- function() {
-    df_china <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "China") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarise(cases = sum(cases)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(date) %>%
-      dplyr::mutate(china = cumsum(cases)) %>%
-      dplyr::filter(china > 100)  %>%
-      dplyr::select(-cases, -date)
-    
+    conf_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+df_conf1 <- read.csv(file = conf_url,
+                     stringsAsFactors = FALSE) %>%
+  dplyr::filter(Country.Region %in% c('China', 'United Kingdom','US', 'Korea, South', 'Spain')) %>%
+  tidyr::pivot_longer(cols = dplyr::starts_with("X"),
+                      names_to = "date_temp",
+                      values_to = "cases_temp")
+# Parsing the date
+df_conf1$month <- sub("X", "",
+                      strsplit(df_conf1$date_temp, split = "\\.") %>%
+                        purrr::map_chr(~.x[1]) )
+df_conf1$day <- strsplit(df_conf1$date_temp, split = "\\.") %>%
+  purrr::map_chr(~.x[2])
+df_conf1$date <- as.Date(paste("2020", df_conf1$month, df_conf1$day, sep = "-"))
+df_conf1 <- df_conf1 %>%
+  dplyr::arrange(date) %>%
+  dplyr::group_by(date, Country.Region) %>%
+  dplyr::summarise(cases = sum(cases_temp)) %>%
+  dplyr::mutate(type = "confirmed") %>%
+  as.data.frame()
+    df_china <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='China')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(china = cases)
+
     df_china$index <- 1:nrow(df_china)
 
-    df_us <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "US") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarise(cases = sum(cases)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(date) %>%
-      dplyr::mutate(us = cumsum(cases)) %>%
-      dplyr::filter(us > 100)  %>%
-      dplyr::select(-cases, -date)
-    
+    df_us <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='US')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(us = cases)
+
     df_us$index <- 1:nrow(df_us)
 
-    df_uk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "United Kingdom") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarise(cases = sum(cases)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(date) %>%
-      dplyr::mutate(uk = cumsum(cases)) %>%
-      dplyr::filter(uk > 100)  %>%
-      dplyr::select(-cases, -date)
-    
+    df_uk <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='United Kingdom')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(uk = cases)
+
     df_uk$index <- 1:nrow(df_uk)
 
-    df_sk <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Korea, South") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarise(cases = sum(cases)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(date) %>%
-      dplyr::mutate(sk = cumsum(cases)) %>%
-      dplyr::filter(sk > 100)  %>%
-      dplyr::select(-cases, -date)
-    
+    df_sk <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Korea, South')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(sk = cases)
+
     df_sk$index <- 1:nrow(df_sk)
 
-    df_spain <- coronavirus %>% dplyr::filter(type == "confirmed", Country.Region == "Spain") %>%
-      dplyr::group_by(date) %>%
-      dplyr::summarise(cases = sum(cases)) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(date) %>%
-      dplyr::mutate(spain = cumsum(cases)) %>%
-      dplyr::filter(spain > 100)  %>%
-      dplyr::select(-cases, -date)
-    
-    df_spain$index <- 1:nrow(df_spain)
+    df_spain <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Spain')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(spain = cases)
 
+    df_spain$index <- 1:nrow(df_spain)
     # Read the Italy data from dataset
     df_italy <- readRDS('data/italy_total.rds') %>% dplyr::select(date, italy = cumulative_cases) %>%
       dplyr::filter(italy > 100) %>%
@@ -304,26 +296,8 @@ plotlyOutput("international")
 ```
 
 
-Geo & Regional Level {data-icon="ion-map"}
+Regional Level {data-icon="ion-map"}
 =======================================================================
-
-Column { data-width=500 }
------------------------------------------------------------------------
-
-### Total Number of Cases by Region
-
-```{r echo=FALSE, results='asis'}
-
-# as of `r max(italy_region$date)`
-
-cat('<div class="flourish-embed flourish-chart" data-src="story/230085"><script src="https://public.flourish.studio/resources/embed.js"></script></div>')
-
-# dummy <- leaflet::leaflet(options = leaflet::leafletOptions(minZoom = 0, maxZoom = 18))
-# 
-# italy_map_region %>% 
-#    mapview::mapview(zcol = "cumulative_cases")  # %>% 
-#   leaflet::setView(lng =  12.49, lat = 41.9, zoom = 14)
-```
 
 Column { data-width=500 }
 -----------------------------------------------------------------------
@@ -331,6 +305,24 @@ Column { data-width=500 }
 ### Cases Distribution by Region (as of `r max(readRDS('data/italy_region.rds')$date)`)
 ```{r}
 plotlyOutput("region")
+```
+
+Column { data-width=500 }
+-----------------------------------------------------------------------
+
+### Cases Distribution in Lombardia (as of `r max(readRDS('data/italy_region.rds')$date)`)
+
+```{r}
+plotlyOutput("lombardia")
+# ```{r echo=FALSE, results='asis'}
+
+#cat('<div class="flourish-embed flourish-chart" data-src="story/230085"><script src="https://public.flourish.studio/resources/embed.js"></script></div>')
+
+# dummy <- leaflet::leaflet(options = leaflet::leafletOptions(minZoom = 0, maxZoom = 18))
+# 
+# italy_map_region %>% 
+#    mapview::mapview(zcol = "cumulative_cases")  # %>% 
+#   leaflet::setView(lng =  12.49, lat = 41.9, zoom = 14)
 ```
 
 About {data-icon="ion-information"}
@@ -591,6 +583,43 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
                  template = layout$template,
                  legend = list(x = 0.7, y = 0.01))
+})
+
+output$lombardia <- renderPlotly({
+italy_region_new() %>%
+  dplyr::filter(region_name == "Lombardia") %>%
+plotly::plot_ly(x = ~ date,
+                y = ~cumulative_cases,
+                name = 'Total',
+                fill = "tozeroy",
+                type = 'scattergl',
+                mode = 'lines',
+                stackgroup = 1) %>%
+  plotly::add_trace( y = ~ cumulative_positive_cases,
+                     name = "Active",
+                     fill = "tozeroy",
+                     type = 'scattergl',
+                     mode = 'lines',
+                     stackgroup = 1) %>%
+  plotly::add_trace(y = ~recovered,
+                    name = 'Recovered',
+                    fill = "tozeroy",
+                    type = 'scattergl',
+                    mode = 'lines',
+                    stackgroup = 1) %>%
+    plotly::add_trace( y = ~ death,
+                     name = "Death",
+                     fill = "tozeroy",
+                     type = 'scattergl',
+                     mode = 'lines',
+                     stackgroup = 1) %>%
+  plotly::layout(title = "",
+                 legend = list(x = 0.1, y = 0.9),
+                 yaxis = list(title = "Number of Cases in Lombardia"),
+                 xaxis = list(title = "Source: Italy Department of Civil Protection"),
+                 template = layout2$template,
+                 hovermode = "compared")
+
 })
 
 # Set this to "force" instead of TRUE for testing locally (without Shiny Server)
