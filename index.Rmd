@@ -149,7 +149,7 @@ home_conf_color <- "#FDBBBC"
     conf_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
 df_conf1 <- read.csv(file = conf_url,
                      stringsAsFactors = FALSE) %>%
-  dplyr::filter(Country.Region %in% c('China', 'United Kingdom','US', 'Korea, South', 'Spain')) %>%
+  dplyr::filter(Country.Region %in% c('China', 'United Kingdom','US', 'Korea, South', 'Spain', 'Brazil')) %>%
   tidyr::pivot_longer(cols = dplyr::starts_with("X"),
                       names_to = "date_temp",
                       values_to = "cases_temp")
@@ -195,6 +195,13 @@ df_conf1 <- df_conf1 %>%
       dplyr::select(spain = cases)
 
     df_spain$index <- 1:nrow(df_spain)
+
+    df_brazil <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Brazil')  %>%
+      dplyr::filter(cases > 100) %>%
+      dplyr::select(brazil = cases)
+
+    df_brazil$index <- 1:nrow(df_brazil)
+
     # Read the Italy data from dataset
     df_italy <- readRDS('data/italy_total.rds') %>% dplyr::select(date, italy = cumulative_cases) %>%
       dplyr::filter(italy > 100) %>%
@@ -206,6 +213,7 @@ df_conf1 <- df_conf1 %>%
       dplyr::left_join(df_uk, by = "index") %>%
       dplyr::left_join(df_sk, by = "index") %>%
       dplyr::left_join(df_us, by = "index") %>%
+      dplyr::left_join(df_brazil, by = "index") %>%
       dplyr::left_join(df_spain, by = "index")
 
     saveRDS(file='data/df_trajectory.rds', df_trajectory)
@@ -573,9 +581,9 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ uk,
                     name = "UK",  line = list(color = "orange", width = 2)) %>%
-  #plotly::add_lines(x = ~ index,
-  #                  y = ~ sk,
-  #                  name = "South Korea",  line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ brazil,
+                    name = "Brazil",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ spain,
                     name = "Spain") %>%
