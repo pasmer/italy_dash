@@ -2,6 +2,8 @@
 title: "Covid-19 IT Dashboard"
 output: 
   flexdashboard::flex_dashboard:
+    navbar:
+     - { title: "Use Tabs to change pages -->", align: left }
     css: www/bootstrap-pas.css
     social: ["facebook", "twitter", "linkedin"]
     logo: www/Pas_48.jpg
@@ -304,7 +306,7 @@ plotlyOutput("international")
 ```
 
 
-Regional Level {data-icon="ion-map"}
+Regional Level {data-icon="fa-signal"}
 =======================================================================
 
 Column { data-width=500 }
