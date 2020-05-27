@@ -18,7 +18,7 @@ library(flexdashboard)
 library(shiny)
 library(shinyjs)
 library(plotly)
-library(ggplot2)
+library(mapview)
 source("www/layoutDarkP.R")
 ```
 
@@ -221,15 +221,26 @@ df_conf1 <- df_conf1 %>%
     saveRDS(file='data/df_trajectory.rds', df_trajectory)
   }
 
-# Mapping -------------------------------------------------------------------------------
-# italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
-#   dplyr::select(province = name, region, geometry) %>%
-#   dplyr::group_by(region) %>%
-#   dplyr::summarise(n = dplyr::n()) %>%
-#   dplyr::left_join(italy_region %>% 
-#               dplyr::filter(date == max(date)), # subseting for the most recent day
-#             by = c("region" = "region_spatial"))
-# End Mapping ----------------------------------------------------------------------------
+##%######################################################%##
+#                                                          #
+####                  Italy Map Region                  ####
+#                                                          #
+##%######################################################%##
+
+new_italy_map_region <- function() {
+italy_region <- readRDS("data/italy_region.rds")
+  italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
+     dplyr::select(province = name, region, geometry) %>%
+     dplyr::group_by(region) %>%
+     dplyr::summarise(n = dplyr::n()) %>%
+     dplyr::left_join(italy_region %>%
+                        dplyr::filter(date == max(date)) %>%
+                        dplyr::group_by(region_spatial) %>%
+                        dplyr::summarise("cumulative cases" = sum(cumulative_cases)),
+                      by = c("region" = "region_spatial"))
+
+}
+
 #
 ##%######################################################%##
 #                                                          #
@@ -240,6 +251,7 @@ df_conf1 <- df_conf1 %>%
     new_italy_total()
     new_italy_region()
     new_df_trajectory()
+    new_italy_map_region()
 
 ```
 
@@ -320,10 +332,18 @@ plotlyOutput("region")
 Column { data-width=500 }
 -----------------------------------------------------------------------
 
-### Cases Distribution in Lombardia (as of `r max(readRDS('data/italy_region.rds')$date)`)
+### Map of Cases Distribution in Italy (as of `r max(readRDS('data/italy_region.rds')$date)`)
+```{r}
+
+mapviewOutput("italymapreg")
+
+```
+
+### FOCUS Lombardia: Cases Distribution (as of `r max(readRDS('data/italy_region.rds')$date)`)
 
 ```{r}
 plotlyOutput("lombardia")
+
 # ```{r echo=FALSE, results='asis'}
 
 #cat('<div class="flourish-embed flourish-chart" data-src="story/230085"><script src="https://public.flourish.studio/resources/embed.js"></script></div>')
@@ -629,6 +649,16 @@ plotly::plot_ly(x = ~ date,
                  xaxis = list(title = "Source: Italy Department of Civil Protection"),
                  template = layout2$template,
                  hovermode = "compared")
+
+})
+
+# Italy Map 
+output$italymapreg <- renderMapview({
+   new_italy_map_region() %>%
+     mapview::mapview(zcol = "cumulative cases",
+                      popup = leafpop::popupTable(new_italy_map_region(),
+                                                  zcol = c( "region", "cumulative cases"),
+                                                  row.numbers = FALSE, feature.id = FALSE))
 
 })
 
