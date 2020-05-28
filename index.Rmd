@@ -230,14 +230,14 @@ df_conf1 <- df_conf1 %>%
 new_italy_map_region <- function() {
 italy_region <- readRDS("data/italy_region.rds")
   italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
-     dplyr::select(province = name, region, geometry) %>%
+     dplyr::select(province = name, Region =region, geometry) %>%
      dplyr::group_by(region) %>%
      dplyr::summarise(n = dplyr::n()) %>%
      dplyr::left_join(italy_region %>%
                         dplyr::filter(date == max(date)) %>%
                         dplyr::group_by(region_spatial) %>%
                         dplyr::summarise("cumulative cases" = sum(cumulative_cases)),
-                      by = c("region" = "region_spatial"))
+                      by = c("Region" = "region_spatial"))
 
 }
 
