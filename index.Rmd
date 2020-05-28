@@ -230,8 +230,8 @@ df_conf1 <- df_conf1 %>%
 new_italy_map_region <- function() {
 italy_region <- readRDS("data/italy_region.rds")
   italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
-     dplyr::select(province = name, Region =region, geometry) %>%
-     dplyr::group_by(region) %>%
+     dplyr::select(province = name, Region = region, geometry) %>%
+     dplyr::group_by(Region) %>%
      dplyr::summarise(n = dplyr::n()) %>%
      dplyr::left_join(italy_region %>%
                         dplyr::filter(date == max(date)) %>%
@@ -657,7 +657,7 @@ output$italymapreg <- renderMapview({
    new_italy_map_region() %>%
      mapview::mapview(zcol = "cumulative cases",
                       popup = leafpop::popupTable(new_italy_map_region(),
-                                                  zcol = c( "region", "cumulative cases"),
+                                                  zcol = c("Region", "cumulative cases"),
                                                   row.numbers = FALSE, feature.id = FALSE))
 
 })
