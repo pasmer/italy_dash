@@ -107,34 +107,51 @@ home_conf_color <- "#FDBBBC"
                         "cases_tested",
                         "notes_it", "notes_en")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, - state, -notes_it, -notes_en, -new_positive_cases) %>%
-      dplyr::select(date, dplyr::everything()) %>%
-      dplyr::mutate(region_spatial = region_name) %>%
-      dplyr::arrange(date)
-    
-    italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Emilia Romagna",
-                                          "Emilia-Romagna",
-                                          italy_region$region_spatial)
-    
-    
-    italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Friuli Venezia Giulia",
-                                          "Friuli-Venezia Giulia",
-                                          italy_region$region_spatial)
-    
-    
-    italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Sicilia",
-                                          "Sicily",
-                                          italy_region$region_spatial)
-    
-    italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Puglia",
-                                          "Apulia",
-                                          italy_region$region_spatial)
-    
-    
-    italy_region$region_spatial <- ifelse(italy_region$region_spatial == "P.A. Bolzano" |
-                                            italy_region$region_spatial == "P.A. Trento",
-                                          "Trentino-Alto Adige",
-                                          italy_region$region_spatial)
+  dplyr::select(-date_temp, - state, -notes_it, -notes_en) %>%
+  dplyr::select(date, dplyr::everything()) %>%
+  dplyr::mutate(region_spatial = region_name) %>%
+  dplyr::group_by(region_name) %>%
+  dplyr::arrange(date) %>%
+  dplyr::mutate(change_d_cumcases_ptc = ((cumulative_cases/dplyr::lag(cumulative_cases, n = 1))-1)) %>%
+  dplyr::mutate(change_w_cumcases_ptc = (change_d_cumcases_ptc +
+                                      dplyr::lag(change_d_cumcases_ptc, n = 1) +
+                                      dplyr::lag(change_d_cumcases_ptc, n = 2) +
+                                      dplyr::lag(change_d_cumcases_ptc, n = 3) +
+                                      dplyr::lag(change_d_cumcases_ptc, n = 4)) / 5) %>%
+  dplyr::mutate(change_d_death_ptc = ((death/dplyr::lag(death, n = 1))-1)) %>%
+  dplyr::mutate(new_cases_ptc_test = new_positive_cases/(total_tests-dplyr::lag(total_tests, n = 1))) %>%
+  dplyr::mutate(change_w_newcases_test_ptc = (new_cases_ptc_test +
+                                           dplyr::lag(new_cases_ptc_test, n = 1) +
+                                           dplyr::lag(new_cases_ptc_test, n = 2) +
+                                           dplyr::lag(new_cases_ptc_test, n = 3) +
+                                           dplyr::lag(new_cases_ptc_test, n = 4)) / 5) %>%
+  dplyr::group_by(date) %>%
+  dplyr::mutate(weight_reg = new_positive_cases/sum(new_positive_cases)) %>%
+  dplyr::ungroup()
+  
+italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Emilia Romagna",
+                                      "Emilia-Romagna",
+                                      italy_region$region_spatial)
+
+
+italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Friuli Venezia Giulia",
+                                      "Friuli-Venezia Giulia",
+                                      italy_region$region_spatial)
+
+
+italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Sicilia",
+                                      "Sicily",
+                                      italy_region$region_spatial)
+
+italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Puglia",
+                                      "Apulia",
+                                      italy_region$region_spatial)
+
+
+italy_region$region_spatial <- ifelse(italy_region$region_spatial == "P.A. Bolzano" |
+                                        italy_region$region_spatial == "P.A. Trento",
+                                      "Trentino-Alto Adige",
+                                      italy_region$region_spatial)
     
     saveRDS(file='data/italy_region.rds', italy_region)
   }
@@ -236,8 +253,14 @@ italy_region <- readRDS("data/italy_region.rds")
      dplyr::left_join(italy_region %>%
                         dplyr::filter(date == max(date)) %>%
                         dplyr::group_by(region_spatial) %>%
-                        dplyr::summarise("cumulative cases" = sum(cumulative_cases)),
-                      by = c("Region" = "region_spatial"))
+                        dplyr::select(region_spatial, "Cumulative Cases" = cumulative_cases, change_d_cumcases_ptc, "Total Deaths" = death, change_w_cumcases_ptc, weight_reg, change_d_death_ptc, new_cases_ptc_test, change_w_newcases_test_ptc) %>%
+                        dplyr::mutate("Daily Change" = paste(formatC(round((100*change_d_cumcases_ptc),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Last 5days average Change" = paste(formatC(round((100*change_w_cumcases_ptc),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Region weight on total" = paste(formatC(round((100*weight_reg),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Daily death Change" = paste(formatC(round((100*change_d_death_ptc),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("New cases on Tests" = paste(formatC(round((100*new_cases_ptc_test),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Average Last 5days" = paste(formatC(round((100*change_w_newcases_test_ptc),2), flag = "+"), "%")) %>%
+                        dplyr::select(-change_d_cumcases_ptc, -change_w_cumcases_ptc, -weight_reg, -change_d_death_ptc, new_cases_ptc_test, change_w_newcases_test_ptc) , by = c("Region" = "region_spatial"))
 
 }
 
@@ -655,9 +678,9 @@ plotly::plot_ly(x = ~ date,
 # Italy Map 
 output$italymapreg <- renderMapview({
    new_italy_map_region() %>%
-     mapview::mapview(zcol = "cumulative cases",
+     mapview::mapview(zcol = "Cumulative Cases",
                       popup = leafpop::popupTable(new_italy_map_region(),
-                                                  zcol = c("Region", "cumulative cases"),
+                                                  zcol = c("Region", "Cumulative Cases", "Daily Change", "Last 5days average Change", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
                                                   row.numbers = FALSE, feature.id = FALSE))
 
 })
