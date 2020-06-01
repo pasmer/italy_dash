@@ -420,44 +420,44 @@ Senior Fellow <a href="https://www.smartinstitute.org/" target="_blank">The Smar
 ```{r, contex="server"}
 # Server function
 # Reading the new data and rebuild the dataset
- italy_total_new <- reactiveFileReader(180000,
+ italy_total_new <- reactiveFileReader(240000,
                                session=session,
                                'data/italy_total.rds',
                                readRDS)
 
- italy_region_new <- reactiveFileReader(180000,
+ italy_region_new <- reactiveFileReader(240000,
                                session=session,
                                'data/italy_region.rds',
                                readRDS)
 
- df_trajectory_new <- reactiveFileReader(180000,
+ df_trajectory_new <- reactiveFileReader(240000,
                                session=session,
                                'data/df_trajectory.rds',
                                readRDS)
  
- italy_map_region_new <- reactiveFileReader(180000,
+ italy_map_region_new <- reactiveFileReader(240000,
                                session=session,
                                'data/italy_map_region.rds',
                                readRDS)
 # Trigger functions
    observe({
         new_italy_total()
-        invalidateLater(180000)
+        invalidateLater(240000)
       })
    
    observe({
         new_italy_region()
-        invalidateLater(180000)
+        invalidateLater(240000)
       })
    
    observe({
         new_df_trajectory()
-        invalidateLater(180000)
+        invalidateLater(240000)
       })
    
    observe({
         new_italy_map_region()
-        invalidateLater(180000)
+        invalidateLater(240000)
       })
 
 # Outputs for the dashboard
