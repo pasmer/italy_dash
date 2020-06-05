@@ -108,51 +108,30 @@ home_conf_color <- "#FDBBBC"
                         "cases_tested",
                         "notes_it", "notes_en")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-  dplyr::select(-date_temp, - state, -notes_it, -notes_en) %>%
-  dplyr::select(date, dplyr::everything()) %>%
-  dplyr::mutate(region_spatial = region_name) %>%
-  dplyr::group_by(region_name) %>%
-  dplyr::arrange(date) %>%
-  dplyr::mutate(change_d_cumcases_ptc = ((cumulative_cases/dplyr::lag(cumulative_cases, n = 1))-1)) %>%
-  dplyr::mutate(change_w_cumcases_ptc = (change_d_cumcases_ptc +
-                                      dplyr::lag(change_d_cumcases_ptc, n = 1) +
-                                      dplyr::lag(change_d_cumcases_ptc, n = 2) +
-                                      dplyr::lag(change_d_cumcases_ptc, n = 3) +
-                                      dplyr::lag(change_d_cumcases_ptc, n = 4)) / 5) %>%
-  dplyr::mutate(change_d_death_ptc = ((death/dplyr::lag(death, n = 1))-1)) %>%
-  dplyr::mutate(new_cases_ptc_test = new_positive_cases/(total_tests-dplyr::lag(total_tests, n = 1))) %>%
-  dplyr::mutate(change_w_newcases_test_ptc = (new_cases_ptc_test +
-                                           dplyr::lag(new_cases_ptc_test, n = 1) +
-                                           dplyr::lag(new_cases_ptc_test, n = 2) +
-                                           dplyr::lag(new_cases_ptc_test, n = 3) +
-                                           dplyr::lag(new_cases_ptc_test, n = 4)) / 5) %>%
-  dplyr::group_by(date) %>%
-  dplyr::mutate(weight_reg = new_positive_cases/sum(new_positive_cases)) %>%
-  dplyr::ungroup()
+      dplyr::select(-date_temp, - state, -notes_it, -notes_en) %>%
+      dplyr::select(date, dplyr::everything()) %>%
+      dplyr::mutate(region_spatial = region_name)
   
-italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Emilia Romagna",
-                                      "Emilia-Romagna",
-                                      italy_region$region_spatial)
-
-
-italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Friuli Venezia Giulia",
-                                      "Friuli-Venezia Giulia",
-                                      italy_region$region_spatial)
-
-
-italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Sicilia",
-                                      "Sicily",
-                                      italy_region$region_spatial)
-
-italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Puglia",
-                                      "Apulia",
-                                      italy_region$region_spatial)
-
-
-italy_region$region_spatial <- ifelse(italy_region$region_spatial == "P.A. Bolzano" |
-                                        italy_region$region_spatial == "P.A. Trento",
-                                      "Trentino-Alto Adige",
-                                      italy_region$region_spatial)
+  italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Emilia Romagna",
+                                        "Emilia-Romagna",
+                                        italy_region$region_spatial)
+  
+  italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Friuli Venezia Giulia",
+                                        "Friuli-Venezia Giulia",
+                                        italy_region$region_spatial)
+  
+  italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Sicilia",
+                                        "Sicily",
+                                        italy_region$region_spatial)
+  
+  italy_region$region_spatial <- ifelse(italy_region$region_spatial == "Puglia",
+                                        "Apulia",
+                                        italy_region$region_spatial)
+  
+  italy_region$region_spatial <- ifelse(italy_region$region_spatial == "P.A. Bolzano" |
+                                          italy_region$region_spatial == "P.A. Trento",
+                                        "Trentino-Alto Adige",
+                                        italy_region$region_spatial)
     
     saveRDS(file='data/italy_region.rds', italy_region)
   }
@@ -247,7 +226,37 @@ df_conf1 <- df_conf1 %>%
 
 new_italy_map_region <- function() {
   italy_region <- readRDS("data/italy_region.rds")
-    italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
+  # Filter data from Regions -- Last 5 days
+  italy_region <- italy_region %>%
+  dplyr::filter(date >= (max(date)-5)) %>% 
+  dplyr::select(date, region_spatial, cumulative_positive_cases, recovered, death, cumulative_cases, new_positive_cases, total_tests) %>%
+  dplyr::group_by(region_spatial, date) %>%
+  dplyr::mutate(cumulative_positive_cases = sum(cumulative_positive_cases),
+                   recovered = sum(recovered),
+                   death = sum(death),
+                   cumulative_cases = sum(cumulative_cases), new_positive_cases = sum(new_positive_cases),
+                   total_tests = sum(total_tests)) %>%
+  dplyr::distinct() %>%
+  dplyr::ungroup() %>%
+  dplyr::arrange(date) %>%
+  dplyr::mutate(change_d_cumcases_ptc = ((cumulative_cases/dplyr::lag(cumulative_cases, n = 1))-1)) %>%
+  dplyr::mutate(change_w_cumcases_ptc = (change_d_cumcases_ptc +
+                                           dplyr::lag(change_d_cumcases_ptc, n = 1) +
+                                           dplyr::lag(change_d_cumcases_ptc, n = 2) +
+                                           dplyr::lag(change_d_cumcases_ptc, n = 3) +
+                                           dplyr::lag(change_d_cumcases_ptc, n = 4)) / 5) %>%
+  dplyr::mutate(change_d_death_ptc = ((death/dplyr::lag(death, n = 1))-1)) %>%
+  dplyr::mutate(new_cases_ptc_test = new_positive_cases/(total_tests-dplyr::lag(total_tests, n = 1))) %>%
+  dplyr::mutate(change_w_newcases_test_ptc = (new_cases_ptc_test +
+                                                dplyr::lag(new_cases_ptc_test, n = 1) +
+                                                dplyr::lag(new_cases_ptc_test, n = 2) +
+                                                dplyr::lag(new_cases_ptc_test, n = 3) +
+                                                dplyr::lag(new_cases_ptc_test, n = 4)) / 5) %>%
+  dplyr::group_by(date) %>%
+  dplyr::mutate(weight_reg = new_positive_cases/sum(new_positive_cases)) %>%
+  dplyr::ungroup()
+  # Dataset for the Italy Regions Map
+  italy_map_region <- rnaturalearth::ne_states(country = "Italy", returnclass = "sf") %>%
      dplyr::select(province = name, Region = region, geometry) %>%
      dplyr::group_by(Region) %>%
      dplyr::summarise(n = dplyr::n()) %>%
