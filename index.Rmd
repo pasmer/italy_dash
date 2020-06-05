@@ -232,13 +232,14 @@ new_italy_map_region <- function() {
   dplyr::select(date, region_spatial, cumulative_positive_cases, recovered, death, cumulative_cases, new_positive_cases, total_tests) %>%
   dplyr::group_by(region_spatial, date) %>%
   dplyr::mutate(cumulative_positive_cases = sum(cumulative_positive_cases),
-                   recovered = sum(recovered),
-                   death = sum(death),
-                   cumulative_cases = sum(cumulative_cases), new_positive_cases = sum(new_positive_cases),
-                   total_tests = sum(total_tests)) %>%
+                recovered = sum(recovered),
+                death = sum(death),
+                cumulative_cases = sum(cumulative_cases), new_positive_cases = sum(new_positive_cases),
+                total_tests = sum(total_tests)) %>%
   dplyr::distinct() %>%
   dplyr::ungroup() %>%
   dplyr::arrange(date) %>%
+  dplyr::group_by(region_spatial) %>%
   dplyr::mutate(change_d_cumcases_ptc = ((cumulative_cases/dplyr::lag(cumulative_cases, n = 1))-1)) %>%
   dplyr::mutate(change_w_cumcases_ptc = (change_d_cumcases_ptc +
                                            dplyr::lag(change_d_cumcases_ptc, n = 1) +
