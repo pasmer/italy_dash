@@ -696,9 +696,9 @@ plotly::plot_ly(x = ~ date,
 
 # Italy Map 
 output$italymapreg <- renderLeaflet({
-    mapnew <- italy_map_region_new()
-    mapview::mapview(mapnew, zcol = "Cumulative Cases",
-                      popup = leafpop::popupTable(mapnew,
+    IT <- italy_map_region_new()
+    mapview::mapview(IT, zcol = "Cumulative Cases",
+                      popup = leafpop::popupTable(IT,
                                                   zcol = c("Region", "Cumulative Cases", "Daily Change", "Last 5days average Change", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
                                                   row.numbers = FALSE, feature.id = FALSE))@map
   
