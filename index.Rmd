@@ -405,7 +405,7 @@ This Covid19 Italy dashboard provides an overview of the 2019 Novel Coronavirus 
 
 I built this dashboard with R then I deployed it in my personal R Shiny Server to give evereybody access.
 
-The aim of this dashboard is to provide an insight for the business decision-makers, for that the next improvements will consider the economic impacts and the scenario analysis with a risk management point of view.
+The aim of this dashboard is to provide an insight for the <b>business decision-makers</b>, for that the next improvements will consider the economic impacts and the scenario analysis with a <b>risk management</b> point of view.
 
 **To be updated please follow me on:**
 
@@ -573,6 +573,7 @@ italy_region_new() %>%
                    cumulative_cases = sum(cumulative_cases)) %>%
   dplyr::ungroup() %>%
   dplyr::arrange(cumulative_cases) %>%
+  dplyr::top_n(10) %>%
   dplyr::mutate(region = factor(region_spatial , levels = region_spatial)) %>%
   plotly::plot_ly(y = ~ region,
           x = ~ cumulative_positive_cases,
