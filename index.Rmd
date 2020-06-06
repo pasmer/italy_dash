@@ -266,8 +266,8 @@ new_italy_map_region <- function() {
                         dplyr::group_by(region_spatial) %>%
                         dplyr::select(region_spatial, "Cumulative Cases" = cumulative_cases, change_d_cumcases_ptc, "Total Deaths" = death, change_w_cumcases_ptc, weight_reg, change_d_death_ptc, new_cases_ptc_test, change_w_newcases_test_ptc) %>%
                         dplyr::mutate("Daily Change" = paste(formatC(round((100*change_d_cumcases_ptc),2), flag = "+"), "%")) %>%
-                        dplyr::mutate("Last 5days average Change" = paste(formatC(round((100*change_w_cumcases_ptc),2), flag = "+"), "%")) %>%
-                        dplyr::mutate("Region weight on total" = paste(formatC(round((100*weight_reg),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Average change Last 5days" = paste(formatC(round((100*change_w_cumcases_ptc),2), flag = "+"), "%")) %>%
+                        dplyr::mutate("Region weight on total" = paste(formatC(round(100*weight_reg,2)), "%")) %>%
                         dplyr::mutate("Daily death Change" = paste(formatC(round((100*change_d_death_ptc),2), flag = "+"), "%")) %>%
                         dplyr::mutate("New cases on Tests" = paste(formatC(round((100*new_cases_ptc_test),2), flag = "+"), "%")) %>%
                         dplyr::mutate("Average Last 5days" = paste(formatC(round((100*change_w_newcases_test_ptc),2), flag = "+"), "%")) %>%
@@ -723,7 +723,7 @@ output$italymapreg <- renderLeaflet({
     IT <- italy_map_region_new()
     mapview::mapview(IT, zcol = "Cumulative Cases",
                       popup = leafpop::popupTable(IT,
-                                                  zcol = c("Region", "Cumulative Cases", "Daily Change", "Last 5days average Change", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
+                                                  zcol = c("Region", "Cumulative Cases", "Daily Change", "Average change Last 5days", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
                                                   row.numbers = FALSE, feature.id = FALSE))@map
   
 })
