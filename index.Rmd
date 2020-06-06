@@ -64,7 +64,7 @@ home_conf_color <- "#FDBBBC"
                         "cases_tested",
                         "notes_it", "notes_en")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, -state, -notes_it, -notes_en, -new_positive_cases) %>%
+      dplyr::select(-date_temp, -state, -notes_it, -notes_en, new_positive_cases) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::arrange(date)
 
@@ -306,6 +306,11 @@ valueBoxOutput("vbox5")
 valueBoxOutput("vbox1")
 ```
 
+### new cases {.value-box}
+```{r}
+valueBoxOutput("vbox7")
+```
+
 ### Active {.value-box}
 ```{r}
 valueBoxOutput("vbox2")
@@ -398,7 +403,7 @@ About {data-icon="ion-information"}
 
 This Covid19 Italy dashboard provides an overview of the 2019 Novel Coronavirus COVID-19 (2019-nCoV) outbreak in Italy.
 
-This is a first beta release built with R.
+I built this dashboard with R then I deployed it in my personal R Shiny Server to give evereybody access.
 
 The aim of this dashboard is to provide an insight for the business decision-makers, for that the next improvements will consider the economic impacts and the scenario analysis with a risk management point of view.
 
@@ -411,7 +416,7 @@ The aim of this dashboard is to provide an insight for the business decision-mak
 
 **Data source**
 
-The code of this dashboard is forked by GitHub <a href="https://github.com/RamiKrispin/" target="_blank">repository</a>.
+The code of this dashboard is forked by GitHub <a href="https://github.com/RamiKrispin/" target="_blank">repository</a> and the full code is on my <a href="https://github.com/pasmer/italy_dash" target="_blank">GitHub Repository</a>.
 
 The raw data for this dashboard is pulled from Italy Department of Civil Protection, and the coronavirus package from Johns Hopkins University Center for Systems Science and Engineering (JHU CCSE).
 The data and dashboard are refreshed on a daily basis.
@@ -522,6 +527,15 @@ output$vbox6 <- renderValueBox({
   valueBox(value = paste(format(render_value$intensive_care, big.mark = ","), sep = ""),
          caption = paste(" (",formatC(round(100*(render_value$intensive_care/render_valuep$intensive_care-1),1), flag = "+"), "%) Intensive Care"),
          icon = "fas fa-procedures", 
+         color = intensive_care_color)
+})
+
+output$vbox7 <- renderValueBox({
+  render_value <- italy_total_new() %>% dplyr::filter(date == max(date))
+  render_valuer <- italy_region_new() %>% dplyr::filter(date == max(date) & region_spatial =="Lombardia")
+  valueBox(value = paste(format(render_value$new_positive_cases, big.mark = ","), sep = ""),
+         caption = paste("New Cases of which ", render_valuer$new_positive_cases, "in Lombardy"),
+         icon = "fas fa-search", 
          color = intensive_care_color)
 })
 
