@@ -4,12 +4,26 @@ CHANGELOG
 All changes to the project, new features and information are documented
 in this file
 
-## Ver.1.3
+## V1.5
 
-  - Changes: modification on the datafeed structure followed by changes
-    in Portezione Civile repository
+  - Added data from Brazil
+  - Added Italy Region Map
+  - New version with more statistics on regioanl map
+  - Update about time-refresh
+  - Updated after data raw changes
+  - Update data structure for Regional Map’s dataset
+  - Data computation fixed
+  - Added new boxes
+  - Changes on datafeed structure followed by changes in Portezione
+    Civile repository
 
-## Ver.1.2
+## v1.2
 
-  - Changes: Added a full set of informations about regional datas
-    available on popup in the map (see Regional Tab)
+  - New version with more efficient international updates
+  - Few improvements
+
+## v1.0
+
+  - Forked
+  - Restyling with dark theme
+  - CSS style for the dashboard

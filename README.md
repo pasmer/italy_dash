@@ -7,11 +7,15 @@ The Covid-19 Italy Dashboard
 license](https://img.shields.io/badge/License-Creative%20Commons%20Attribution%204.0%20International-blue)](https://github.com/pasmer/italy_dash/blob/master/LICENSE)
 [![GitHub
 commit](https://img.shields.io/github/last-commit/pasmer/italy_dash)](https://github.com/pasmer/italy_dash/commits/master)
+<br> [![Twitter
+Follow](https://img.shields.io/twitter/follow/pasqualemerella?label=Follow%20Me&style=social)](https://twitter.com/pasqualemerella)
 <br>
 
-**The Coronavirus Dashboard for Italy**
+**The Coronavirus Dashboard for
+Italy**
 
-Ver. 1.3 – See the
+![version](https://img.shields.io/github/v/release/pasmer/italy_dash?include_prereleases)
+– See the
 [Changelog](https://github.com/pasmer/italy_dash/blob/master/CHANGELOG.md)
 for more info.
 
