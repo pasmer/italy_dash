@@ -1,15 +1,19 @@
+The Covid-19 Italy Dashboard
+================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# The Covid19 Italy Dashboard
-
-[![GitHub license](https://img.shields.io/badge/License-Creative%20Commons%20Attribution%204.0%20International-blue)](https://github.com/pasmer/italy_dash/blob/master/LICENSE)
-[![GitHub commit](https://img.shields.io/github/last-commit/pasmer/italy_dash)](https://github.com/pasmer/italy_dash/commits/master)
+[![GitHub
+license](https://img.shields.io/badge/License-Creative%20Commons%20Attribution%204.0%20International-blue)](https://github.com/pasmer/italy_dash/blob/master/LICENSE)
+[![GitHub
+commit](https://img.shields.io/github/last-commit/pasmer/italy_dash)](https://github.com/pasmer/italy_dash/commits/master)
 <br>
 
 **The Coronavirus Dashboard for Italy**
 
-Ver. 1.3
+Ver. 1.3 – See the
+[Changelog](https://github.com/pasmer/italy_dash/blob/master/CHANGELOG.md)
+for more info.
 
 This Covid19 Italy dashboard provides an overview of the 2019 Novel
 Coronavirus COVID-19 (2019-nCoV) outbreak in Italy.
@@ -22,13 +26,13 @@ decision-makers</b>, for that the next improvements will consider the
 economic impacts and the scenario analysis with a <b>risk management</b>
 point of view.
 
-**Tab: Summary**
+### Tab: Summary
 
-<img src="figures/dash1.png" width="100%" />
+<img src="figures/dash1.png" width="100%" /> <br>
 
-**Tab: Regional Level**
+### Tab: Regional Level
 
-<img src="figures/dash2.png" width="100%" />
+<img src="figures/dash2.png" width="100%" /> <br>
 
 **To be updated please follow me on:**
 
