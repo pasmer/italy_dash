@@ -1,5 +1,5 @@
 ---
-title: "Covid-19 IT Dashboard"
+title: "Covid-19 ITA Dashboard"
 output: 
   flexdashboard::flex_dashboard:
     navbar:
@@ -59,12 +59,14 @@ home_conf_color <- "#FDBBBC"
                         "new_positive_cases",
                         "recovered",
                         "death",
+                        "casi_da_sospetto_diagnostico",
+                        "casi_da_screening",
                         "cumulative_cases",
                         "total_tests",
                         "cases_tested",
-                        "notes_it", "notes_en")) %>%
+                        "notes")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, -state, -notes_it, -notes_en, new_positive_cases) %>%
+      dplyr::select(-date_temp, -state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::arrange(date)
 
@@ -103,12 +105,14 @@ home_conf_color <- "#FDBBBC"
                         "new_positive_cases",
                         "recovered",
                         "death",
+                        "casi_da_sospetto_diagnostico",
+                        "casi_da_screening",
                         "cumulative_cases",
                         "total_tests",
                         "cases_tested",
-                        "notes_it", "notes_en")) %>%
+                        "notes")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, - state, -notes_it, -notes_en) %>%
+      dplyr::select(-date_temp, - state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::mutate(region_spatial = region_name)
   
@@ -573,7 +577,6 @@ italy_region_new() %>%
                    cumulative_cases = sum(cumulative_cases)) %>%
   dplyr::ungroup() %>%
   dplyr::arrange(cumulative_cases) %>%
-  dplyr::top_n(10) %>%
   dplyr::mutate(region = factor(region_spatial , levels = region_spatial)) %>%
   plotly::plot_ly(y = ~ region,
           x = ~ cumulative_positive_cases,

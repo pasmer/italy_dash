@@ -1,11 +1,15 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-### The Covid19 Italy Dashboard
+# The Covid19 Italy Dashboard
 
-**The Coronavirus Dashboard**
+[![GitHub license](https://img.shields.io/badge/License-Creative%20Commons%20Attribution%204.0%20International-blue)](https://github.com/pasmer/italy_dash/blob/master/LICENSE)
+[![GitHub commit](https://img.shields.io/github/last-commit/pasmer/italy_dash)](https://github.com/pasmer/italy_dash/commits/master)
+<br>
 
-Ver. 1.2
+**The Coronavirus Dashboard for Italy**
+
+Ver. 1.3
 
 This Covid19 Italy dashboard provides an overview of the 2019 Novel
 Coronavirus COVID-19 (2019-nCoV) outbreak in Italy.
