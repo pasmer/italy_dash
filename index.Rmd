@@ -47,7 +47,7 @@ home_conf_color <- "#FDBBBC"
 ##%######################################################%##
 #
   new_italy_total <- function() {
-    italy_total <- read.csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv",
+   italy_total <- read.csv("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-andamento-nazionale/dpc-covid19-ita-andamento-nazionale.csv",
                             stringsAsFactors = FALSE) %>%
       stats::setNames(c("date_temp", "state",
                         "hospitalized_with_symptoms",
@@ -150,76 +150,152 @@ home_conf_color <- "#FDBBBC"
 
  new_df_trajectory <- function() {
     conf_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+death_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
+recov_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
+
+contry_list <- c('Italy', 'US', 'United Kingdom', 'Germany', 'China', 'Brazil', 'Russia', 'Japan')
+
+# Confirmed ==================================================================
 df_conf1 <- read.csv(file = conf_url,
                      stringsAsFactors = FALSE) %>%
-  dplyr::filter(Country.Region %in% c('China', 'United Kingdom','US', 'Korea, South', 'Spain', 'Brazil')) %>%
+  dplyr::filter(Country.Region %in% contry_list) %>%
   tidyr::pivot_longer(cols = dplyr::starts_with("X"),
                       names_to = "date_temp",
                       values_to = "cases_temp")
-# Parsing the date
-df_conf1$month <- sub("X", "",
+# Parsing the date --------------------------------------------------------
+  df_conf1$month <- sub("X", "",
                       strsplit(df_conf1$date_temp, split = "\\.") %>%
-                        purrr::map_chr(~.x[1]) )
-df_conf1$day <- strsplit(df_conf1$date_temp, split = "\\.") %>%
-  purrr::map_chr(~.x[2])
-df_conf1$date <- as.Date(paste("2020", df_conf1$month, df_conf1$day, sep = "-"))
-df_conf1 <- df_conf1 %>%
-  dplyr::arrange(date) %>%
-  dplyr::group_by(date, Country.Region) %>%
-  dplyr::summarise(cases = sum(cases_temp)) %>%
-  dplyr::mutate(type = "confirmed") %>%
-  as.data.frame()
-    df_china <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='China')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(china = cases)
+                      purrr::map_chr(~.x[1]) )
+  df_conf1$day <- strsplit(df_conf1$date_temp, split = "\\.") %>%
+      purrr::map_chr(~.x[2])
+  df_conf1$date <- as.Date(paste("2020", df_conf1$month, df_conf1$day, sep = "-"))
+  df_conf1 <- df_conf1 %>%
+      dplyr::arrange(date) %>%
+      dplyr::group_by(date, Country.Region) %>%
+      dplyr::summarise(cases = sum(cases_temp)) %>%
+      as.data.frame()
+  
+# Death ======================================================================
+  df_death1 <- read.csv(file = death_url,
+                       stringsAsFactors = FALSE) %>%
+    dplyr::filter(Country.Region %in% contry_list) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("X"),
+                        names_to = "date_temp",
+                        values_to = "cases_temp")
+  # Parsing the date --------------------------------------------------------
+  df_death1$month <- sub("X", "",
+                        strsplit(df_death1$date_temp, split = "\\.") %>%
+                          purrr::map_chr(~.x[1]) )
+  df_death1$day <- strsplit(df_death1$date_temp, split = "\\.") %>%
+    purrr::map_chr(~.x[2])
+  df_death1$date <- as.Date(paste("2020", df_death1$month, df_death1$day, sep = "-"))
+  df_death1 <- df_death1 %>%
+    dplyr::arrange(date) %>%
+    dplyr::group_by(date, Country.Region) %>%
+    dplyr::summarise(death = sum(cases_temp)) %>%
+    as.data.frame()
+  
+  # Recovered ===============================================================
+  df_recov1 <- read.csv(file = recov_url,
+                        stringsAsFactors = FALSE) %>%
+    dplyr::filter(Country.Region %in% contry_list) %>%
+    tidyr::pivot_longer(cols = dplyr::starts_with("X"),
+                        names_to = "date_temp",
+                        values_to = "cases_temp")
+  # Parsing the date --------------------------------------------------------
+  df_recov1$month <- sub("X", "",
+                         strsplit(df_recov1$date_temp, split = "\\.") %>%
+                           purrr::map_chr(~.x[1]) )
+  df_recov1$day <- strsplit(df_recov1$date_temp, split = "\\.") %>%
+    purrr::map_chr(~.x[2])
+  df_recov1$date <- as.Date(paste("2020", df_recov1$month, df_recov1$day, sep = "-"))
+  df_recov1 <- df_recov1 %>%
+    dplyr::arrange(date) %>%
+    dplyr::group_by(date, Country.Region) %>%
+    dplyr::summarise(recovered = sum(cases_temp)) %>%
+    as.data.frame()
+  
+# full dataset  
+  dt_full <- df_conf1 %>%
+    dplyr::left_join(df_death1, by = c("Country.Region", "date")) %>%
+    dplyr::left_join(df_recov1, by = c("Country.Region", "date"))
 
-    df_china$index <- 1:nrow(df_china)
+# Creating Country Time Series --------------------------------------------
+df_italy <- dt_full %>% dplyr::filter(Country.Region =='Italy')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_italy = abs_level, death_italy = death_level)
+# Add the index
+df_italy$index <- 1:nrow(df_italy)
 
-    df_us <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='US')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(us = cases)
+df_us <- dt_full %>% dplyr::filter(Country.Region =='US')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_us = abs_level, death_us = death_level)
+# Add the index
+df_us$index <- 1:nrow(df_us)
 
-    df_us$index <- 1:nrow(df_us)
+df_uk <- dt_full %>% dplyr::filter(Country.Region =='United Kingdom')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_uk = abs_level, death_uk = death_level)
+# Add the index
+df_uk$index <- 1:nrow(df_uk)
 
-    df_uk <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='United Kingdom')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(uk = cases)
+df_ger <- dt_full %>% dplyr::filter(Country.Region =='Germany')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_germany = abs_level, death_germany = death_level)
+# Add the index
+df_ger$index <- 1:nrow(df_ger)
 
-    df_uk$index <- 1:nrow(df_uk)
+df_china <- dt_full %>% dplyr::filter(Country.Region =='China')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_china = abs_level, death_china = death_level)
+# Add the index
+df_china$index <- 1:nrow(df_china)
 
-    df_sk <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Korea, South')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(sk = cases)
+df_bra <- dt_full %>% dplyr::filter(Country.Region =='Brazil')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_bra = abs_level, death_bra = death_level)
+# Add the index
+df_bra$index <- 1:nrow(df_bra)
 
-    df_sk$index <- 1:nrow(df_sk)
+df_rus <- dt_full %>% dplyr::filter(Country.Region =='Russia')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_russia = abs_level, death_russia = death_level)
+# Add the index
+df_rus$index <- 1:nrow(df_rus)
 
-    df_spain <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Spain')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(spain = cases)
+df_jpn <- dt_full %>% dplyr::filter(Country.Region =='Japan')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_japan = abs_level, death_japan = death_level)
+# Add the index
+df_jpn$index <- 1:nrow(df_jpn)
 
-    df_spain$index <- 1:nrow(df_spain)
+# Creating trajectory
+df_traj_abs <- df_italy %>%
+  dplyr::left_join(df_us, by = "index") %>%
+  dplyr::left_join(df_uk, by = "index") %>%
+  dplyr::left_join(df_ger, by = "index") %>%
+  dplyr::left_join(df_china, by = "index") %>%
+  dplyr::left_join(df_bra, by = "index") %>%
+  dplyr::left_join(df_rus, by = "index") %>%
+  dplyr::left_join(df_jpn, by = "index")
 
-    df_brazil <- df_conf1 %>% dplyr::filter(type == "confirmed", Country.Region =='Brazil')  %>%
-      dplyr::filter(cases > 100) %>%
-      dplyr::select(brazil = cases)
-
-    df_brazil$index <- 1:nrow(df_brazil)
-
-    # Read the Italy data from dataset
-    df_italy <- readRDS('data/italy_total.rds') %>% dplyr::select(date, italy = cumulative_cases) %>%
-      dplyr::filter(italy > 100) %>%
-      dplyr::select(-date)
-    df_italy$index <- 1:nrow(df_italy)
-
-    df_trajectory <- df_china %>%
-      dplyr::left_join(df_italy, by = "index") %>%
-      dplyr::left_join(df_uk, by = "index") %>%
-      dplyr::left_join(df_sk, by = "index") %>%
-      dplyr::left_join(df_us, by = "index") %>%
-      dplyr::left_join(df_brazil, by = "index") %>%
-      dplyr::left_join(df_spain, by = "index")
-
-    saveRDS(file='data/df_trajectory.rds', df_trajectory)
+    saveRDS(file='data/df_trajectory.rds', df_traj_abs)
   }
 
 ##%######################################################%##
@@ -268,7 +344,7 @@ new_italy_map_region <- function() {
      dplyr::left_join(italy_region %>%
                         dplyr::filter(date == max(date)) %>%
                         dplyr::group_by(region_spatial) %>%
-                        dplyr::select(region_spatial, "Cumulative Cases" = cumulative_cases, change_d_cumcases_ptc, "Total Deaths" = death, change_w_cumcases_ptc, weight_reg, change_d_death_ptc, new_cases_ptc_test, change_w_newcases_test_ptc) %>%
+                        dplyr::select(region_spatial, "Cum. Cases" = cumulative_cases, change_d_cumcases_ptc, "Total Deaths" = death, change_w_cumcases_ptc, weight_reg, change_d_death_ptc, new_cases_ptc_test, change_w_newcases_test_ptc) %>%
                         dplyr::mutate("Daily Change" = paste(formatC(round((100*change_d_cumcases_ptc),2), flag = "+"), "%")) %>%
                         dplyr::mutate("Average change Last 5days" = paste(formatC(round((100*change_w_cumcases_ptc),2), flag = "+"), "%")) %>%
                         dplyr::mutate("Region weight on total" = paste(formatC(round(100*weight_reg,2)), "%")) %>%
@@ -338,12 +414,14 @@ valueBoxOutput("vbox4")
 Column { data-width=425 }
 -----------------------------------------------------------------------
 
-### Distribution of Active Cases (as of `r max(readRDS('data/italy_total.rds')$date)`)
+### `r htmlOutput("abs")`
 ```{r}
-plotlyOutput("activecases")
+# Distribution of Active Cases
+# plotlyOutput("activecases")
+plotlyOutput("absorption")
 ```
 
-### Daily Delta New Active Cases (variation from the day before)
+### ITALY Daily Delta New Active Cases (variation from the day before)
 ```{r}
 plotlyOutput("dailynew")
 ```
@@ -351,15 +429,14 @@ plotlyOutput("dailynew")
 Column { data-width=425 }
 -----------------------------------------------------------------------
 
-### Overall Distribution of Cases (as of `r max(readRDS('data/italy_total.rds')$date)`)
+### `r htmlOutput("deathcond")`
 ```{r}
-plotlyOutput("overall")
+plotlyOutput("death")
 ```
 
-
-### Trajectory Plot - Italy vs. major countries (with respect of confirmed cases)
+### `r htmlOutput("update") `
 ```{r}
-plotlyOutput("international")
+plotlyOutput("overall")
 ```
 
 
@@ -369,23 +446,27 @@ Regional Level {data-icon="fa-signal"}
 Column { data-width=500 }
 -----------------------------------------------------------------------
 
-### Cases Distribution by Region (as of `r max(readRDS('data/italy_region.rds')$date)`)
+### `r htmlOutput("top10reg")`
 ```{r}
 plotlyOutput("region")
+```
+
+### `r htmlOutput("top10pop")`
+```{r}
+plotlyOutput("region_pop")
 ```
 
 Column { data-width=500 }
 -----------------------------------------------------------------------
 
-### Map of Cases Distribution in Italy (as of `r max(readRDS('data/italy_region.rds')$date)`)
+### `r htmlOutput("mapita")`
 ```{r}
 
 leafletOutput("italymapreg")
 
 ```
 
-### FOCUS Lombardia: Cases Distribution (as of `r max(readRDS('data/italy_region.rds')$date)`)
-
+### `r htmlOutput("lombard")`
 ```{r}
 plotlyOutput("lombardia")
 
@@ -577,6 +658,7 @@ italy_region_new() %>%
                    cumulative_cases = sum(cumulative_cases)) %>%
   dplyr::ungroup() %>%
   dplyr::arrange(cumulative_cases) %>%
+  dplyr::top_n(10) %>%
   dplyr::mutate(region = factor(region_spatial , levels = region_spatial)) %>%
   plotly::plot_ly(y = ~ region,
           x = ~ cumulative_positive_cases,
@@ -658,31 +740,71 @@ plotly::plot_ly(data = italy_total_new(),
          hovermode = "compared")
 })
 
-output$international <- renderPlotly({
+output$absorption <- renderPlotly({
 plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ china,
-                    name = "China",  line = list(width = 2)) %>%
-  plotly::add_lines(x = ~ index,
-                    y = ~ italy,
+                    y = ~ round(100 * abs_italy, 1),
                     line = list(color = "red", width = 4),
-                    name = "Italy") %>%
+                    name ='Italy') %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ us,
+                    y = ~ round(100 * abs_germany, 1),
+                    line = list(width = 2),
+                    name = "Germany") %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * abs_us, 1),
                     name = "United States",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ uk,
-                    name = "UK",  line = list(color = "orange", width = 2)) %>%
+                    y = ~ round(100 * abs_bra, 1),
+                    name = "Brazil",  line = list(color = 'blue', width = 2)) %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ brazil,
-                    name = "Brazil",  line = list(width = 2)) %>%
+                    y = ~ round(100 * abs_china, 1),
+                    name = "China",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
-                    y = ~ spain,
-                    name = "Spain") %>%
-  plotly::layout(yaxis = list(title = "Cumulative Positive Cases",type = "log"),
+                    y = ~ round(100 * abs_russia, 1),
+                    name = "Russia", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * abs_japan, 1),
+                    name = "Japan", line = list(width = 2)) %>%
+  # in yaxis for log version add in the list ,type = "log"
+  plotly::layout(yaxis = list(title = "Absorption rate of cases", ticksuffix = "%"),
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
                  template = layout$template,
-                 legend = list(x = 0.7, y = 0.01))
+                 hovermode = "compared",
+                 legend = list(x = 0.01, y = 1.2))
+})
+
+output$death <- renderPlotly({
+plotly::plot_ly(data = df_trajectory_new()) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_italy, 1),
+                    line = list(color = "red", width = 4),
+                    name ='Italy') %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_germany, 1),
+                    line = list(width = 2),
+                    name = "Germany") %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_us, 1),
+                    name = "United States",  line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_bra, 1),
+                    name = "Brazil",  line = list(color = 'blue', width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_china, 1),
+                    name = "China",  line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_russia, 1),
+                    name = "Russia", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_japan, 1),
+                    name = "Japan", line = list(width = 2)) %>%
+  # in yaxis for log version add in the list ,type = "log"
+  plotly::layout(yaxis = list(title = "Conditional mortality rate", ticksuffix = "%"),
+                 xaxis = list(title = "Days since the total positive cases surpass 100"),
+                 template = layout$template,
+                 hovermode = "compared",
+                 legend = list(x = 0.7, y = 1.2))
+
 })
 
 output$lombardia <- renderPlotly({
@@ -725,11 +847,87 @@ plotly::plot_ly(x = ~ date,
 # Italy Map 
 output$italymapreg <- renderLeaflet({
     IT <- italy_map_region_new()
-    mapview::mapview(IT, zcol = "Cumulative Cases",
+    mapview::mapview(IT, zcol = "Cum. Cases",
                       popup = leafpop::popupTable(IT,
-                                                  zcol = c("Region", "Cumulative Cases", "Daily Change", "Average change Last 5days", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
+                                                  zcol = c("Region", "Cum. Cases", "Daily Change", "Average change Last 5days", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
                                                   row.numbers = FALSE, feature.id = FALSE))@map
   
+})
+
+output$region_pop <- renderPlotly({
+  # Data on Regional population
+  italy_region_pop <- readRDS('data/italy_region_pop.rds')
+  # Dataset
+  new_region_pop <- italy_region_new() %>%
+  dplyr::filter(date == max(date)) %>%
+  dplyr::select(date, region_spatial, death, cumulative_cases) %>%
+  dplyr::group_by(region_spatial) %>%
+  dplyr::summarise(death = sum(death),
+                   cumulative_cases = sum(cumulative_cases)) %>%
+  dplyr::left_join(italy_region_pop, by = c("region_spatial" = "region_spatial")) %>%
+  dplyr::mutate(Death_on_pop = (death/pop)*100000) %>%
+  dplyr::mutate(Tot_cases_on_pop = (cumulative_cases/pop)*100000) %>%
+  dplyr::arrange(Tot_cases_on_pop) %>%
+  dplyr::top_n(10)
+  #Chart
+  new_region_pop %>%
+  dplyr::mutate(region = factor(region_spatial , levels = unique(region_spatial)[order(Tot_cases_on_pop, decreasing = TRUE)])) %>%
+  plotly::plot_ly(x = ~ region,
+                  y = ~ Tot_cases_on_pop,
+                  type = 'bar',
+                  mode = 'markers',
+                  name = "Total Cases",
+                  marker = list(color = "#1f77b4"),
+                  orientation = 'v') %>%
+  plotly::add_trace(y = ~ Death_on_pop,
+                     type = 'bar',
+                     name = "Death Cases",
+                     marker = list(color = "red"),
+                     orientation = 'v') %>%
+  plotly::layout(title = "",
+                 legend = list(x = 0.5, y = 0.9),
+                 yaxis = list(title = "Number of Cases per 100k residents"),
+                 xaxis = list(title = "Source: Italy Department of Civil Protection"),
+                 template = layout3$template,
+                 hovermode = "compared")
+  
+})
+
+## As of date - Chart Labels
+
+output$abs <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("Absorption Rate of Cases - Italy vs. major countries (as of ", datanew, ")"))
+})
+
+output$deathcond <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("Conditional Mortality Rate - Italy vs. major countries (as of ", datanew, ")"))
+})
+
+output$update <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("ITALY Overall Distribution of Cases (as of ", datanew, ")"))
+})
+
+output$top10reg <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("Top10 Cases Distribution by Region (as of ", datanew, ")"))
+})
+
+output$top10pop <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("Top10 Cases Distribution based on population (as of ", datanew, ")"))
+})
+
+output$mapita <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("Map of Cases Distribution in Italy (as of ", datanew, ")"))
+})
+
+output$lombard <- renderUI({
+  datanew <- as.character(max(italy_total_new()$date))
+  HTML(paste("FOCUS Lombardia: Cases Distribution (as of ", datanew, ")"))
 })
 
 # Set this to "force" instead of TRUE for testing locally (without Shiny Server)
