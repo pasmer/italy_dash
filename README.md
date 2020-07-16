@@ -32,11 +32,11 @@ point of view.
 
 ### Tab: Summary
 
-<img src="figures/dash1.png" width="100%" /> <br>
+<img src="figures/dash1.JPG" width="100%" /> <br>
 
 ### Tab: Regional Level
 
-<img src="figures/dash2.png" width="100%" /> <br>
+<img src="figures/dash2.JPG" width="100%" /> <br>
 
 **To be updated please follow me on:**
 
