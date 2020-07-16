@@ -7,7 +7,8 @@ in this file
 ## V1.8
 
   - Added two new charts with an international comparison analysis
-  - Removed the chart with the raw number of cases (international comparison)
+  - Removed the chart with the raw number of cases (international
+    comparison)
   - Added a Top10 Regional cases and death related to thier population
 
 ## V1.5
@@ -30,6 +31,6 @@ in this file
 
 ## v1.0
 
-  - Forked by [GitHub](https://github.com/RamiKrispin/italy_dash)
+  - Forked
   - Restyling with dark theme
   - CSS style for the dashboard
