@@ -30,11 +30,11 @@ decision-makers</b>, for that the next improvements will consider the
 economic impacts and the scenario analysis with a <b>risk management</b>
 point of view.
 
-### Tab: Summary
+### Page: HOME
 
 <img src="figures/dash1.JPG" width="100%" /> <br>
 
-### Tab: Regional Level
+### Page: Regional DATA
 
 <img src="figures/dash2.JPG" width="100%" /> <br>
 
