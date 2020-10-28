@@ -4,6 +4,12 @@ CHANGELOG
 All changes to the project, new features and information are documented
 in this file
 
+## V1.9
+
+  - Fixed mapview update: added libray(“leafpop”) and installed
+    remotes::install\_github(“r-spatial/mapview”)
+  - Renamed the menu items
+
 ## V1.8
 
   - Added two new charts with an international comparison analysis

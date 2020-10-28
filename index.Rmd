@@ -3,7 +3,7 @@ title: "Covid-19 ITA Dashboard"
 output: 
   flexdashboard::flex_dashboard:
     navbar:
-     - { title: "Use Tabs to change pages -->", align: left }
+     - { title: "MENU -->", align: left }
     css: www/bootstrap-pas.css
     social: ["facebook", "twitter", "linkedin"]
     logo: www/Pas_48.jpg
@@ -17,14 +17,40 @@ runtime: shiny
 library(flexdashboard)
 library(shiny)
 library(shinyjs)
-library(plotly)
+#library(plotly)
+library(metathis)
 library(mapview)
 library(leaflet)
+library(leafpop)
 source("www/layoutDarkP.R")
-```
-
-```{r global, include=FALSE}
 `%>%` <- magrittr::`%>%`
+```
+```{r meta, echo=FALSE}
+# Add meta-tags to html output
+meta() %>%
+  meta_description(
+    "Dashboard con grafici e statistiche aggiornati giornalmente su andamento della pandemia da Covid-19 coronavirus con focus mondo e Italia e per Regione"
+  ) %>%
+  meta_name("github-repo" = "pasmer/italy_dash",
+            "keywords" = "dashboard, italy, Covid-19, Covid19, Italia, business impact, risk, risk management",
+            "robots" = "index, follow",
+            "author" = "Pasquale Merella"
+  ) %>% 
+  meta_viewport() %>% 
+  meta_social(
+    title = "Dashboard Covid-19 Italy",
+    url = "https://dashboard.merella.it",
+    image = "https://github.com/pasmer/italy_dash/raw/master/figures/dash1.png",
+    image_alt = "Dashboard con grafici e statistiche aggiornati giornalmente",
+    og_type = "Dashboard",
+    og_author = "Pasquale Merella",
+    twitter_card_type = "summary",
+    twitter_creator = "@pasqualemerella"
+  ) %>%
+  include_meta()
+
+```
+```{r global, include=FALSE}
 #
 #------------------ Parameters ------------------
 # Set colors
@@ -153,7 +179,7 @@ home_conf_color <- "#FDBBBC"
 death_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv"
 recov_url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv"
 
-contry_list <- c('Italy', 'US', 'United Kingdom', 'Germany', 'China', 'Brazil', 'Russia', 'Japan')
+contry_list <- c('Italy', 'US', 'United Kingdom', 'Germany', 'China', 'Brazil', 'Russia', 'Japan', 'France', 'Spain', 'Belgium')
 
 # Confirmed ==================================================================
 df_conf1 <- read.csv(file = conf_url,
@@ -285,6 +311,30 @@ df_jpn <- dt_full %>% dplyr::filter(Country.Region =='Japan')  %>%
 # Add the index
 df_jpn$index <- 1:nrow(df_jpn)
 
+df_fra <- dt_full %>% dplyr::filter(Country.Region =='France')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_france = abs_level, death_france = death_level)
+# Add the index
+df_fra$index <- 1:nrow(df_fra)
+
+df_spa <- dt_full %>% dplyr::filter(Country.Region =='Spain')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_spain = abs_level, death_spain = death_level)
+# Add the index
+df_spa$index <- 1:nrow(df_spa)
+
+df_bel <- dt_full %>% dplyr::filter(Country.Region =='Belgium')  %>%
+  dplyr::filter(cases > 100) %>%
+  dplyr::mutate(abs_level = (death+recovered)/cases) %>%
+  dplyr::mutate(death_level = death/(death+recovered)) %>%  
+  dplyr::select(abs_belgium = abs_level, death_belgium = death_level)
+# Add the index
+df_bel$index <- 1:nrow(df_bel)
+
 # Creating trajectory
 df_traj_abs <- df_italy %>%
   dplyr::left_join(df_us, by = "index") %>%
@@ -293,8 +343,11 @@ df_traj_abs <- df_italy %>%
   dplyr::left_join(df_china, by = "index") %>%
   dplyr::left_join(df_bra, by = "index") %>%
   dplyr::left_join(df_rus, by = "index") %>%
-  dplyr::left_join(df_jpn, by = "index")
-
+  dplyr::left_join(df_jpn, by = "index") %>%
+  dplyr::left_join(df_fra, by = "index") %>%
+  dplyr::left_join(df_spa, by = "index") %>%
+  dplyr::left_join(df_bel, by = "index")
+  
     saveRDS(file='data/df_trajectory.rds', df_traj_abs)
   }
 
@@ -308,7 +361,7 @@ new_italy_map_region <- function() {
   italy_region <- readRDS("data/italy_region.rds")
   # Filter data from Regions -- Last 5 days
   italy_region <- italy_region %>%
-  dplyr::filter(date >= (max(date)-5)) %>% 
+  dplyr::filter(date >= (max(date)-5)) %>%
   dplyr::select(date, region_spatial, cumulative_positive_cases, recovered, death, cumulative_cases, new_positive_cases, total_tests) %>%
   dplyr::group_by(region_spatial, date) %>%
   dplyr::mutate(cumulative_positive_cases = sum(cumulative_positive_cases),
@@ -352,7 +405,7 @@ new_italy_map_region <- function() {
                         dplyr::mutate("New cases on Tests" = paste(formatC(round((100*new_cases_ptc_test),2), flag = "+"), "%")) %>%
                         dplyr::mutate("Average Last 5days" = paste(formatC(round((100*change_w_newcases_test_ptc),2), flag = "+"), "%")) %>%
                         dplyr::select(-change_d_cumcases_ptc, -change_w_cumcases_ptc, -weight_reg, -change_d_death_ptc, -new_cases_ptc_test, -change_w_newcases_test_ptc) , by = c("Region" = "region_spatial"))
-  
+
   saveRDS(file='data/italy_map_region.rds', italy_map_region)
 
 }
@@ -371,7 +424,7 @@ new_italy_map_region <- function() {
 
 ```
 
-Summary {data-icon="ion-ios-home"}
+HOME {data-icon="ion-ios-home"}
 =======================================================================
 Column { data-width=150 }
 -----------------------------------------------------------------------
@@ -418,12 +471,12 @@ Column { data-width=425 }
 ```{r}
 # Distribution of Active Cases
 # plotlyOutput("activecases")
-plotlyOutput("absorption")
+plotly::plotlyOutput("absorption")
 ```
 
 ### ITALY Daily Delta New Active Cases (variation from the day before)
 ```{r}
-plotlyOutput("dailynew")
+plotly::plotlyOutput("dailynew")
 ```
 
 Column { data-width=425 }
@@ -431,16 +484,16 @@ Column { data-width=425 }
 
 ### `r htmlOutput("deathcond")`
 ```{r}
-plotlyOutput("death")
+plotly::plotlyOutput("death")
 ```
 
 ### `r htmlOutput("update") `
 ```{r}
-plotlyOutput("overall")
+plotly::plotlyOutput("overall")
 ```
 
 
-Regional Level {data-icon="fa-signal"}
+Regional DATA {data-icon="fa-signal"}
 =======================================================================
 
 Column { data-width=500 }
@@ -448,12 +501,12 @@ Column { data-width=500 }
 
 ### `r htmlOutput("top10reg")`
 ```{r}
-plotlyOutput("region")
+plotly::plotlyOutput("region")
 ```
 
 ### `r htmlOutput("top10pop")`
 ```{r}
-plotlyOutput("region_pop")
+plotly::plotlyOutput("region_pop")
 ```
 
 Column { data-width=500 }
@@ -461,14 +514,14 @@ Column { data-width=500 }
 
 ### `r htmlOutput("mapita")`
 ```{r}
-
-leafletOutput("italymapreg")
+# `r htmlOutput("mapita")`
+ leafletOutput("italymapreg")
 
 ```
 
 ### `r htmlOutput("lombard")`
 ```{r}
-plotlyOutput("lombardia")
+plotly::plotlyOutput("lombardia")
 
 # ```{r echo=FALSE, results='asis'}
 
@@ -624,7 +677,7 @@ output$vbox7 <- renderValueBox({
          color = intensive_care_color)
 })
 
-output$activecases <- renderPlotly({
+output$activecases <- plotly::renderPlotly({
 plotly::plot_ly(data = italy_total_new(),
         x = italy_total_new()$date,
         y = italy_total_new()$home_confinement, 
@@ -647,7 +700,7 @@ plotly::plot_ly(data = italy_total_new(),
          hovermode = "compared")
 })
 
-output$region <- renderPlotly({
+output$region <- plotly::renderPlotly({
 italy_region_new() %>%
   dplyr::filter(date == max(date)) %>% 
   dplyr::select(region_spatial, cumulative_positive_cases, recovered, death, cumulative_cases) %>%
@@ -698,7 +751,7 @@ italy_region_new() %>%
          ))
 })
 
-output$dailynew <- renderPlotly({
+output$dailynew <- plotly::renderPlotly({
 plotly::plot_ly(data = italy_total_new(),
                 x = ~ date,
                 y = ~ change_positive_cases,
@@ -717,7 +770,7 @@ plotly::plot_ly(data = italy_total_new(),
                  hovermode = "compare")
 })
 
-output$overall <- renderPlotly({
+output$overall <- plotly::renderPlotly({
 plotly::plot_ly(data = italy_total_new(),
         x = ~ date,
         y = ~cumulative_positive_cases,
@@ -740,7 +793,7 @@ plotly::plot_ly(data = italy_total_new(),
          hovermode = "compared")
 })
 
-output$absorption <- renderPlotly({
+output$absorption <- plotly::renderPlotly({
 plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * abs_italy, 1),
@@ -752,7 +805,7 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
                     name = "Germany") %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * abs_us, 1),
-                    name = "United States",  line = list(width = 2)) %>%
+                    name = "USA",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * abs_bra, 1),
                     name = "Brazil",  line = list(color = 'blue', width = 2)) %>%
@@ -765,15 +818,24 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * abs_japan, 1),
                     name = "Japan", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * abs_france, 1),
+                    name = "France", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * abs_spain, 1),
+                    name = "Spain", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * abs_belgium, 1),
+                    name = "Belgium", line = list(width = 2)) %>%
   # in yaxis for log version add in the list ,type = "log"
-  plotly::layout(yaxis = list(title = "Absorption rate of cases", ticksuffix = "%"),
+  plotly::layout(yaxis = list(title = "Absorption Rate of Cases", ticksuffix = "%"),
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
                  template = layout$template,
                  hovermode = "compared",
                  legend = list(x = 0.01, y = 1.2))
 })
 
-output$death <- renderPlotly({
+output$death <- plotly::renderPlotly({
 plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * death_italy, 1),
@@ -785,7 +847,7 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
                     name = "Germany") %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * death_us, 1),
-                    name = "United States",  line = list(width = 2)) %>%
+                    name = "USA",  line = list(width = 2)) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * death_bra, 1),
                     name = "Brazil",  line = list(color = 'blue', width = 2)) %>%
@@ -798,8 +860,17 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
   plotly::add_lines(x = ~ index,
                     y = ~ round(100 * death_japan, 1),
                     name = "Japan", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_france, 1),
+                    name = "France", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_spain, 1),
+                    name = "Spain", line = list(width = 2)) %>%
+  plotly::add_lines(x = ~ index,
+                    y = ~ round(100 * death_belgium, 1),
+                    name = "Belgium", line = list(width = 2)) %>%
   # in yaxis for log version add in the list ,type = "log"
-  plotly::layout(yaxis = list(title = "Conditional mortality rate", ticksuffix = "%"),
+  plotly::layout(yaxis = list(title = "Conditional Mortality Rate", ticksuffix = "%"),
                  xaxis = list(title = "Days since the total positive cases surpass 100"),
                  template = layout$template,
                  hovermode = "compared",
@@ -807,7 +878,7 @@ plotly::plot_ly(data = df_trajectory_new()) %>%
 
 })
 
-output$lombardia <- renderPlotly({
+output$lombardia <- plotly::renderPlotly({
 italy_region_new() %>%
   dplyr::filter(region_name == "Lombardia") %>%
 plotly::plot_ly(x = ~ date,
@@ -851,10 +922,10 @@ output$italymapreg <- renderLeaflet({
                       popup = leafpop::popupTable(IT,
                                                   zcol = c("Region", "Cum. Cases", "Daily Change", "Average change Last 5days", "Region weight on total", "Total Deaths", "Daily death Change", "New cases on Tests", "Average Last 5days"),
                                                   row.numbers = FALSE, feature.id = FALSE))@map
-  
+
 })
 
-output$region_pop <- renderPlotly({
+output$region_pop <- plotly::renderPlotly({
   # Data on Regional population
   italy_region_pop <- readRDS('data/italy_region_pop.rds')
   # Dataset
