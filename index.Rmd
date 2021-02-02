@@ -22,6 +22,7 @@ library(metathis)
 library(mapview)
 library(leaflet)
 library(leafpop)
+library(Cairo)
 source("www/layoutDarkP.R")
 `%>%` <- magrittr::`%>%`
 ```
@@ -90,9 +91,16 @@ home_conf_color <- "#FDBBBC"
                         "cumulative_cases",
                         "total_tests",
                         "cases_tested",
-                        "notes")) %>%
+                        "notes",
+                        "ingressi_terapia_intensiva",
+                        "note_test",
+                        "note_casi",
+                        "totale_positivi_test_molecolare",
+                        "totale_positivi_test_antigenico_rapido",
+                        "tamponi_test_molecolare",
+                        "tamponi_test_antigenico_rapido")) %>%                        
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, -state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes) %>%
+      dplyr::select(-date_temp, -state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes, -ingressi_terapia_intensiva, -note_test, -note_casi, -totale_positivi_test_molecolare, -totale_positivi_test_antigenico_rapido, -tamponi_test_molecolare, -tamponi_test_antigenico_rapido) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::arrange(date)
 
@@ -136,9 +144,18 @@ home_conf_color <- "#FDBBBC"
                         "cumulative_cases",
                         "total_tests",
                         "cases_tested",
-                        "notes")) %>%
+                        "notes",
+                        "ingressi_terapia_intensiva",
+                        "note_test",
+                        "note_casi",
+                        "totale_positivi_test_molecolare",
+                        "totale_positivi_test_antigenico_rapido",
+                        "tamponi_test_molecolare",
+                        "tamponi_test_antigenico_rapido",
+                        "codice_nuts_1",
+                        "codice_nuts_2")) %>%
       dplyr::mutate(date = lubridate::ymd(substr(date_temp, 1, 10))) %>%
-      dplyr::select(-date_temp, - state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes) %>%
+      dplyr::select(-date_temp, - state, -casi_da_sospetto_diagnostico, -casi_da_screening, -notes, -ingressi_terapia_intensiva, -note_test, -note_casi, -totale_positivi_test_molecolare, -totale_positivi_test_antigenico_rapido, -tamponi_test_molecolare, -tamponi_test_antigenico_rapido, -codice_nuts_1, -codice_nuts_2) %>%
       dplyr::select(date, dplyr::everything()) %>%
       dplyr::mutate(region_spatial = region_name)
   

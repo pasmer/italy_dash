@@ -4,6 +4,10 @@ CHANGELOG
 All changes to the project, new features and information are documented
 in this file
 
+## V1.9.1
+
+  - Fixed dataset updates
+
 ## V1.9
 
   - Fixed mapview update: added libray(“leafpop”) and installed
