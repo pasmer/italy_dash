@@ -1,0 +1,74 @@
+{% extends "Template/base.html" %}
+
+{% block title %}Nuova Pagina - CreditRating PMI{% endblock %}
+
+{% block content %}
+<!-- Top Navigation (Specific to this page) -->
+<header class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/90 dark:bg-background-dark/90 border-b border-slate-200 dark:border-slate-800/50">
+    <div class="flex items-center justify-between px-5 py-3 max-w-7xl mx-auto w-full">
+        <!-- Hamburger Button (Mobile only) - Must keep id="mobile-menu-btn" for base.html scripts to work -->
+        <button id="mobile-menu-btn" class="md:hidden mr-3 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50">
+            <span class="material-symbols-outlined text-2xl">menu</span>
+        </button>
+
+        <div class="flex items-center gap-2 cursor-pointer group" onclick="window.location.href='/'">
+            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-xl">school</span>
+            </div>
+            <h1 class="text-base font-bold tracking-tight text-slate-900 dark:text-white">CreditRating <span class="font-normal text-slate-500">PMI</span></h1>
+        </div>
+        <nav class="flex items-center gap-4">
+            <button class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors">
+                Altro Pulsante
+            </button>
+            <button class="bg-primary hover:bg-blue-600 active:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors shadow-sm shadow-primary/20">
+                Salva
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content Area -->
+<main class="flex-grow w-full relative">
+    <section class="p-6 md:p-10 max-w-7xl mx-auto w-full">
+        
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Titolo della Nuova Pagina</h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-2">Questa è un'implementazione di esempio. Il template di base fornisce solo la sidebar; l'header e questo contenuto sono inseriti all'interno del blocco 'content'.</p>
+        </div>
+
+        <!-- Esempio di griglia contenuti -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Card 1 -->
+            <div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined">analytics</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Card di Esempio</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Inserisci qui i tuoi contenuti, grafici, moduli o altri elementi della UI.</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="w-12 h-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined">description</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Contenuto Flessibile</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Il layout centrale usa Tailwind per essere responsivo, supportando larghezze diverse e contenitori flessibili.</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                <div class="w-12 h-12 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined">settings</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Integrazione Jinja2</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Tutto il codice dell'header, del footer e del contenuto principale viene inserito qui per massima flessibilità.</p>
+            </div>
+
+        </div>
+
+    </section>
+</main>
+{% endblock %}

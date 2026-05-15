@@ -19,6 +19,18 @@ services:
       retries: 3
       start_period: 120s
 
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: italy-dash-web:latest
+    container_name: italy-dash-web
+    ports:
+      - "8100:8100"
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+
 volumes:
   shiny_data:
   shiny_logs:

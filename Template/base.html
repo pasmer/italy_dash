@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html class="dark" lang="it">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}CreditRating PMI - Template{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png" />
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <!-- Font Awesome Icons for Social -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "primary-dark": "#0f5bb5",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "card-dark": "#1e2229",
+                        "surface-dark": "#233348",
+                        "surface-light": "#ffffff",
+                        "text-secondary": "#92a9c9",
+                        "success": "#0bda5e",
+                        "warning": "#ff9800",
+                        "danger": "#ff4444",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "md": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px -3px rgba(19, 109, 236, 0.2)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #101822; }
+        ::-webkit-scrollbar-thumb { background: #2a3b55; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #136dec; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { min-height: max(884px, 100dvh); }
+        
+        /* Fixed Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 100%;
+            background: #1c262b;
+            z-index: 100;
+            display: flex;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+        }
+        .sidebar.open { transform: translateX(0); }
+        
+        /* Overlay for mobile */
+        .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .mobile-overlay.active { display: block; opacity: 1; }
+        
+        @media (min-width: 768px) {
+            .sidebar {
+                width: 120px;
+                transform: none !important;
+                box-shadow: none;
+            }
+            .mobile-overlay { display: none !important; }
+            .page-container > header,
+            .page-container > main,
+            .page-container > footer {
+                margin-left: 120px;
+                width: calc(100% - 120px);
+            }
+        }
+        
+        .sidebar-wrap {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .profile-photo img { width: 100%; height: auto; display: block; }
+        .sidebar-title {
+            font-size: 11px;
+            color: #fff;
+            padding: 10px;
+            line-height: 1.2;
+            text-transform: uppercase;
+            font-weight: bold;
+            background: #2ba163;
+            margin: 0;
+        }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { border-bottom: 1px solid rgba(225, 246, 255, 0.07); }
+        .sidebar-nav a {
+            display: block;
+            padding: 20px 10px;
+            color: rgba(225, 246, 255, 0.45);
+            font-size: 10px;
+            letter-spacing: 0.07em;
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        .sidebar-nav a:hover { color: #fff; }
+        .sidebar-nav .nav-icon { display: block; font-size: 28px; margin-bottom: 5px; }
+        .sidebar-footer { margin-top: auto; padding: 20px 10px; }
+        .social-icons {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+        }
+        .social-icons a {
+            color: rgba(225, 246, 255, 0.3);
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            width: 25px;
+            height: 25px;
+            line-height: 25px;
+            display: block;
+        }
+        .social-icons a:hover { color: #fff; transform: scale(1.2); }
+        .copy-text { font-size: 9px; color: rgba(225, 246, 255, 0.2); margin-top: 10px; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden antialiased selection:bg-primary selection:text-white flex flex-col min-h-screen">
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+
+    <!-- Fixed Sidebar -->
+    <aside id="masthead" class="sidebar">
+        <div class="sidebar-wrap">
+            <!-- Profile Photo -->
+            <div class="profile-photo">
+                <img alt="Pasquale Merella, FRM" src="https://www.merella.it/wp-content/uploads/2020/01/Pas_400.jpg">
+            </div>
+
+            <!-- Name Banner -->
+            <h1 class="sidebar-title">Pasquale Merella, FRM</h1>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/">
+                            <span class="material-symbols-outlined nav-icon">home</span>
+                            HOME
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/portfolio">
+                            <span class="material-symbols-outlined nav-icon">arrow_back</span>
+                            BACK TO PORTFOLIO
+                        </a>
+                    </li>
+                    {% block sidebar_extra_links %}{% endblock %}
+                </ul>
+            </nav>
+
+            <!-- Social Icons -->
+            <div class="sidebar-footer">
+                <ul class="social-icons">
+                    <li><a target="_blank" href="https://twitter.com/pasqualemerella" rel="noopener"><i class="fa-brands fa-x-twitter"></i></a></li>
+                    <li><a target="_blank" href="https://www.linkedin.com/in/pasqualemerella/" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a></li>
+                    <li><a target="_blank" href="https://www.youtube.com/channel/UCo5azomk5PTXpUek_xc6X6A" rel="noopener"><i class="fa-brands fa-youtube"></i></a></li>
+                    <li><a target="_blank" href="https://www.instagram.com/ipas/" rel="noopener"><i class="fa-brands fa-instagram"></i></a></li>
+                </ul>
+                <p class="copy-text">© 2019 PM</p>
+            </div>
+        </div>
+    </aside>
+
+    <div class="page-container flex-col w-full min-h-screen">
+        {% block content %}
+        <!-- Varied Content Goes Here -->
+        {% endblock %}
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Sidebar Toggle Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('masthead');
+        const overlay = document.getElementById('mobile-overlay');
+
+        function toggleMobileSidebar() {
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                overlay.style.display = 'block';
+                overlay.offsetHeight; // Force reflow
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleMobileSidebar();
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleMobileSidebar);
+        }
+
+        sidebar.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
