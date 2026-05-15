@@ -944,7 +944,19 @@ output$italymapreg <- renderLeaflet({
 
 output$region_pop <- plotly::renderPlotly({
   # Data on Regional population
-  italy_region_pop <- readRDS('data/italy_region_pop.rds')
+  italy_region_pop <- data.frame(
+    region_spatial = c("Lombardia", "Lazio", "Campania", "Sicily", "Veneto",
+                       "Emilia-Romagna", "Piemonte", "Apulia", "Toscana",
+                       "Calabria", "Sardegna", "Liguria", "Marche", "Abruzzo",
+                       "Friuli-Venezia Giulia", "Trentino-Alto Adige",
+                       "Umbria", "Basilicata", "Molise", "Valle d'Aosta"),
+    pop = c(10006099, 5720214, 5624528, 4804719, 4870059,
+            4464119, 4240773, 3924283, 3677048,
+            1843712, 1590897, 1503418, 1488416, 1276572,
+            1196769, 1084006,
+            852263, 534960, 287678, 123425),
+    stringsAsFactors = FALSE
+  )
   # Dataset
   new_region_pop <- italy_region_new() %>%
   dplyr::filter(date == max(date)) %>%

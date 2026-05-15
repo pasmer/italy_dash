@@ -1,0 +1,24 @@
+services:
+  italy-dash:
+    build: .
+    image: italy-dash:latest
+    container_name: italy-dash
+    ports:
+      - "3838:3838"
+    volumes:
+      # Persist refreshed RDS files across restarts (avoids re-fetching on every restart)
+      - shiny_data:/srv/shiny-server/italy_dash/data
+      - shiny_logs:/var/log/shiny-server
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3838/"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
+
+volumes:
+  shiny_data:
+  shiny_logs:

@@ -1,0 +1,17 @@
+.git
+.gitignore
+.Rproj.user
+.Rhistory
+.RData
+.Rbuildignore
+*.Rproj
+figures/
+docs/
+README.md
+CHANGELOG.md
+AUTHORS
+LICENSE
+CLAUDE.md
+Dockerfile
+docker-compose.yml
+.dockerignore
