@@ -338,4 +338,4 @@ The aim of this dashboard is to provide an insight for the <b>business decision-
 
 Raw data from Italy Department of Civil Protection and JHU CCSE. Full code on <a href="https://github.com/pasmer/italy_dash" target="_blank">GitHub</a>.
 
-**Pasquale Merella, FRM** — Chief Risk Officer, Green Arrow Capital SGR
+**Pasquale Merella, FRM** — Chief Risk Officer
