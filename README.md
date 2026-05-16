@@ -30,6 +30,27 @@ decision-makers</b>, for that the next improvements will consider the
 economic impacts and the scenario analysis with a <b>risk management</b>
 point of view.
 
+## Usage & Deployment (Docker)
+
+The project includes a `docker-compose.yml` file that provides two distinct ways to run the application depending on your needs:
+
+### 1. Full R Shiny Server
+This runs the complete, interactive R Shiny application on a dedicated Shiny Server container.
+- **Port:** `3838`
+- **Command to run only this service:** `docker compose up italy-dash`
+- **Access:** `http://localhost:3838`
+
+### 2. Lightweight Web Portal (Static Dashboard)
+This runs a pre-rendered static HTML version of the dashboard wrapped in a responsive web template with a navigation sidebar, served by a lightweight Python web server. This is ideal for low-resource environments (like a Raspberry Pi / UmbrelOS).
+- **Port:** `8100`
+- **Command to run only this service:** `docker compose up web-app`
+- **Access:** `http://localhost:8100`
+
+**To run both services simultaneously:**
+```bash
+docker compose up -d
+```
+
 ### Page: HOME
 
 <img src="figures/dash1.JPG" width="100%" /> <br>
@@ -64,8 +85,7 @@ For any question or feedback, please contact me via email
 **Pasquale Merella, FRM**
 
 Chief Risk Officer -
-<a href="https://www.greenarrow-capital.com/" target="_blank">Green
-Arrow Capital SGR</a>
+
 
 Senior Fellow
 <a href="https://www.smartinstitute.org/" target="_blank">The Smart

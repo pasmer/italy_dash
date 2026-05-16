@@ -1,5 +1,4 @@
-from flask import Flask, render_template, send_file
-import os
+from flask import Flask, render_template
 
 app = Flask(__name__, template_folder='.')
 
@@ -9,8 +8,7 @@ def dashboard():
 
 @app.route('/content')
 def content():
-    return send_file('dashboard.html')
+    return render_template('dashboard.html')
 
 if __name__ == '__main__':
-    # Run on port 8100 inside the container
-    app.run(host='0.0.0.0', port=8100)
+    app.run(host='0.0.0.0', port=8101)

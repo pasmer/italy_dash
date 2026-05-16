@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files and template directory
 COPY app.py .
+COPY dashboard.html .
 COPY Template/ ./Template/
 COPY www/ ./www/
 COPY style.css .
