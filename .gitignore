@@ -1,5 +1,7 @@
-docs/README.html
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
 .Rproj.user
 .Rhistory
-.DS_Store
-.venv/
+docs/README.html
